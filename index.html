@@ -968,6 +968,64 @@
   .pill-ready { background: rgba(0, 255, 136, 0.15); color: var(--accent-green); border: 1px solid rgba(0, 255, 136, 0.3); }
   .pill-cek { background: rgba(255, 214, 10, 0.15); color: var(--accent-yellow); border: 1px solid rgba(255, 214, 10, 0.3); }
   
+  
+  /* PROCUREMENT STATUS */
+  .procurement-box {
+    margin-top: 14px;
+    padding: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px dashed rgba(255,255,255,0.12);
+    border-radius: 12px;
+  }
+
+  .procurement-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .procurement-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: #00ff88;
+    cursor: pointer;
+  }
+
+  .procurement-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .procurement-help {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .procurement-input {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 12px;
+  }
+
+  .procurement-input:focus {
+    outline: none;
+    border-color: var(--accent-cyan);
+    background: rgba(0, 217, 255, 0.05);
+  }
+
+  .card.procured {
+    box-shadow: 0 0 0 1px rgba(0,255,136,0.25), 0 12px 30px rgba(0,255,136,0.08);
+  }
+
   /* RESPONSIVE - DESKTOP TABLET */
   @media (max-width: 968px) {
     .nav-menu { gap: 4px; }
@@ -1072,6 +1130,7 @@
       <li><a href="#solusi-pin">🔧 Riwayat Revisi</a></li>
       <li><a href="#kode-arduino">💻 Kode</a></li>
       <li><a href="#alur-sistem">🌊 Alur Sistem</a></li>
+      <li><a href="#instalasi-box">📦 Instalasi Box</a></li>
     </ul>
   </div>
 </nav>
@@ -3206,7 +3265,54 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
   </section>
   
   <!-- FOOTER -->
-  <footer>
+  
+  <section class="section" id="instalasi-box">
+    <div class="section-header">
+      <div class="section-icon icon-mech">📦</div>
+      <div class="section-title">
+        <h2>Instalasi Box, Kerapian, dan Safety</h2>
+        <p>Solusi pemasangan komponen arus besar agar rapi, aman, dan mudah diuji di dalam box ABS</p>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <h3>Penempatan komponen di dalam box</h3>
+      <p><strong>PCB motherboard</strong> dipasang pada <strong>baseboard akrilik/PVC 3–5 mm</strong> menggunakan spacer M3.</p>
+      <p><strong>BTS7960, ACS712, relay, induktor, dan terminal block dioda</strong> dipasang di baseboard, bukan ditempel ke PCB motherboard.</p>
+      <p><strong>Dioda freewheel</strong> dipasang rapi pada <strong>terminal block kecil / barrier terminal</strong> agar tidak menggantung. Katoda ke titik switching sebelum induktor dan anoda ke GND/BATT-.</p>
+
+      <h4>Solusi pemasangan yang disarankan</h4>
+      <ul>
+        <li><strong>Baseboard akrilik/PVC:</strong> dudukan utama seluruh modul di dalam box.</li>
+        <li><strong>Spacer M3:</strong> untuk motherboard, relay, dan modul kecil.</li>
+        <li><strong>Bracket / cable tie heavy duty:</strong> untuk menahan induktor toroid agar tidak geser.</li>
+        <li><strong>Terminal block / barrier strip:</strong> untuk sambungan dioda, jalur switching, dan distribusi power.</li>
+        <li><strong>Cable gland PG7/PG9:</strong> untuk jalur keluar panel, pompa, float switch, dan kabel panel depan.</li>
+      </ul>
+
+      <h4>Komponen tambahan untuk merapikan kabel</h4>
+      <ul>
+        <li><strong>Ferrule / skun kabel</strong> untuk ujung kabel ke terminal block.</li>
+        <li><strong>Heat shrink tubing</strong> untuk isolasi sambungan.</li>
+        <li><strong>Cable tie dan cable tie saddle</strong> agar kabel menempel rapi ke baseboard.</li>
+        <li><strong>Spiral wrap / braided sleeve</strong> untuk bundling kabel panel depan dan kabel sinyal.</li>
+        <li><strong>Label kabel / marker</strong> untuk menandai PANEL, BATT, PUMP, FLOAT, LCD.</li>
+        <li><strong>Fuse holder tambahan</strong> untuk jalur pompa 10A dan panel 5A.</li>
+        <li><strong>Distribution terminal block</strong> bila ingin titik sambung GND dan BATT lebih rapi.</li>
+      </ul>
+
+      <h4>Catatan safety pemasangan</h4>
+      <ul>
+        <li>Pisahkan area <strong>daya besar</strong> dan area <strong>logika</strong>.</li>
+        <li>Gunakan kabel lebih tebal untuk panel, aki, pompa, dan jalur BTS7960–induktor–aki.</li>
+        <li>Jangan biarkan dioda atau sambungan power menggantung bebas.</li>
+        <li>Gunakan multimeter untuk cek short sebelum panel dan aki dipasang.</li>
+      </ul>
+    </div>
+  </section>
+
+
+<footer>
     <div class="footer-title">⚡ MPPT Capstone Documentation</div>
     <p style="color: var(--text-secondary); margin-bottom: 8px;">Sistem Otomasi Pompa Air DC Tenaga Surya Berbasis MPPT</p>
     <p style="color: var(--text-muted); font-size: 13px;">Dokumentasi lengkap untuk tugas akhir — BOM, kalkulator, MPPT, wiring, dan flow sistem</p>
@@ -3225,11 +3331,44 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
   // =============================================
   const STORAGE_KEY = 'mppt_capstone_data_v1';
   
+  
+  function enhanceBOMCards() {
+    document.querySelectorAll('.card[data-name]').forEach(card => {
+      if (card.querySelector('.procurement-box')) return;
+      const name = card.dataset.name || '';
+      const voteSection = card.querySelector('.vote-section');
+      const box = document.createElement('div');
+      box.className = 'procurement-box';
+      box.innerHTML =         '<div class="procurement-row">' +
+          '<input type="checkbox" class="procurement-checkbox" id="proc-' + slugify(name) + '">' +
+          '<label class="procurement-label" for="proc-' + slugify(name) + '">Sudah dibeli / sudah tersedia</label>' +
+        '</div>' +
+        '<div class="procurement-help">Jika komponen tidak ada di toko, tulis opsi pengganti, merek lain, atau catatan pembelian di bawah ini.</div>' +
+        '<input type="text" class="procurement-input" placeholder="Contoh: ganti MBR1060 dengan MBR1045, atau relay 30A merek lain">';
+      if (voteSection) voteSection.insertAdjacentElement('afterend', box);
+      else card.appendChild(box);
+
+      const cb = box.querySelector('.procurement-checkbox');
+      const input = box.querySelector('.procurement-input');
+      cb.addEventListener('change', () => {
+        card.classList.toggle('procured', cb.checked);
+        saveAll();
+      });
+      input.addEventListener('input', saveAll);
+    });
+  }
+
+  function slugify(str) {
+    return String(str).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
+
+
   function collectData() {
     const data = {
       votes: {},
       prices: priceData,
       checklist: [],
+      procurement: {},
       savedAt: new Date().toISOString()
     };
 
@@ -3241,6 +3380,13 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
         else if (activeBtn.classList.contains('sewa')) data.votes[name] = 'sewa';
         else if (activeBtn.classList.contains('punya')) data.votes[name] = 'punya';
       }
+    });
+
+    document.querySelectorAll('.card[data-name]').forEach(card => {
+      const name = card.dataset.name;
+      const procured = card.querySelector('.procurement-checkbox')?.checked || false;
+      const replacement = card.querySelector('.procurement-input')?.value?.trim() || '';
+      data.procurement[name] = { procured, replacement };
     });
 
     document.querySelectorAll('.checklist-item').forEach((item, idx) => {
@@ -3275,6 +3421,19 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
       const items = document.querySelectorAll('.checklist-item');
       data.checklist.forEach(idx => {
         if (items[idx]) items[idx].classList.add('checked');
+      });
+    }
+
+    if (data.procurement) {
+      Object.keys(data.procurement).forEach(name => {
+        const card = document.querySelector(`.card[data-name="${name}"]`);
+        if (!card) return;
+        const state = data.procurement[name] || {};
+        const cb = card.querySelector('.procurement-checkbox');
+        const input = card.querySelector('.procurement-input');
+        if (cb) cb.checked = !!state.procured;
+        if (input) input.value = state.replacement || '';
+        card.classList.toggle('procured', !!state.procured);
       });
     }
 
@@ -3317,7 +3476,7 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
   window.collectData = collectData;
   
   function clearAll() {
-    if (!confirm('Yakin mau hapus SEMUA data? Ini akan menghapus vote, harga, dan checklist. Tidak bisa dibatalkan.')) return;
+    if (!confirm('Yakin mau hapus SEMUA data? Ini akan menghapus vote, harga, checklist, centang pembelian, dan catatan pengganti. Tidak bisa dibatalkan.')) return;
     localStorage.removeItem(STORAGE_KEY);
     if (window.clearDataFromCloud) window.clearDataFromCloud();
     location.reload();
@@ -3357,7 +3516,7 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
     reader.onload = function(e) {
       try {
         const data = JSON.parse(e.target.result);
-        if (!data.votes && !data.prices && !data.checklist) {
+        if (!data.votes && !data.prices && !data.checklist && !data.procurement) {
           alert('File tidak valid');
           return;
         }
@@ -3585,9 +3744,10 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
   // =============================================
   // INIT — order matters!
   // =============================================
-  loadAll();              // 1. Load data dari localStorage
-  syncCalculators();       // 2. Render kalkulator dengan data yang dimuat
-  updateChecklistProgress(); // 3. Update checklist counter
+  enhanceBOMCards();       // 1. Tambah kontrol pembelian & opsi pengganti di setiap kartu BOM
+  loadAll();               // 2. Load data dari localStorage
+  syncCalculators();       // 3. Render kalkulator dengan data yang dimuat
+  updateChecklistProgress(); // 4. Update checklist counter
 </script>
 
 <script type="module">
@@ -3655,6 +3815,7 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
             votes: {},
             prices: { beli: {}, sewa: {} },
             checklist: [],
+            procurement: {},
             clearedAt: new Date().toISOString()
           }, { merge: false });
           console.log("Firestore clear sukses.");
@@ -3683,6 +3844,7 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
           votes: {},
           prices: { beli: {}, sewa: {} },
           checklist: [],
+          procurement: {},
           savedAt: new Date().toISOString()
         };
         await setDoc(docRef, initialData, { merge: true });
