@@ -3327,7 +3327,7 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
 
 <script>
   // =============================================
-  // STORAGE SYSTEM — auto-save ke localStorage
+  // STORAGE SYSTEM — Firebase sebagai sumber utama, localStorage hanya backup
   // =============================================
   const STORAGE_KEY = 'mppt_capstone_data_v1';
   
@@ -3474,11 +3474,17 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
 
   window.applyData = applyData;
   window.collectData = collectData;
+  window.loadLocalBackup = loadAll;
   
-  function clearAll() {
+  async function clearAll() {
     if (!confirm('Yakin mau hapus SEMUA data? Ini akan menghapus vote, harga, checklist, centang pembelian, dan catatan pengganti. Tidak bisa dibatalkan.')) return;
     localStorage.removeItem(STORAGE_KEY);
-    if (window.clearDataFromCloud) window.clearDataFromCloud();
+
+    // Kalau Firebase aktif, tunggu proses hapus cloud selesai dulu sebelum reload.
+    if (window.clearDataFromCloud) {
+      await window.clearDataFromCloud();
+    }
+
     location.reload();
   }
   
@@ -3513,7 +3519,7 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
     if (!file) return;
     
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = async function(e) {
       try {
         const data = JSON.parse(e.target.result);
         if (!data.votes && !data.prices && !data.checklist && !data.procurement) {
@@ -3524,7 +3530,14 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
         if (!confirm('Import data? Ini akan timpa data yang ada sekarang.')) return;
         
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        location.reload();
+        if (window.applyData) window.applyData(data);
+
+        // Kalau Firebase aktif, langsung upload data import ke cloud agar device lain ikut berubah.
+        if (window.saveDataToCloud) {
+          await window.saveDataToCloud(data);
+        }
+
+        alert('Import berhasil. Data sudah diterapkan.');
       } catch (err) {
         alert('Import gagal: ' + err.message);
       }
@@ -3745,9 +3758,10 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
   // INIT — order matters!
   // =============================================
   enhanceBOMCards();       // 1. Tambah kontrol pembelian & opsi pengganti di setiap kartu BOM
-  loadAll();               // 2. Load data dari localStorage
-  syncCalculators();       // 3. Render kalkulator dengan data yang dimuat
-  updateChecklistProgress(); // 4. Update checklist counter
+  // Data utama sekarang dimuat oleh Firebase di script module bawah.
+  // localStorage hanya dipakai sebagai backup jika Firebase belum aktif/gagal.
+  syncCalculators();       // 2. Render kalkulator awal
+  updateChecklistProgress(); // 3. Update checklist counter
 </script>
 
 <script type="module">
@@ -3789,7 +3803,8 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
 
   if (!isConfigFilled(firebaseConfig)) {
     setFirebaseStatus('Mode saat ini: <strong>localStorage aktif</strong>. Firebase belum aktif karena firebaseConfig baru belum diisi.');
-    console.log("Firebase belum aktif: isi firebaseConfig baru terlebih dahulu.");
+    if (window.loadLocalBackup) window.loadLocalBackup();
+    console.log("Firebase belum aktif: memakai localStorage sebagai backup.");
   } else {
     try {
       const app = initializeApp(firebaseConfig);
@@ -3798,11 +3813,12 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
 
       window.saveDataToCloud = async function(data) {
         try {
+          // Overwrite penuh, bukan merge. Ini mencegah vote/harga lama tertinggal di Firestore.
           await setDoc(docRef, {
             ...data,
             syncedAt: new Date().toISOString()
-          }, { merge: true });
-          setFirebaseStatus('Mode saat ini: <strong>Firebase + localStorage aktif</strong>. Data berhasil disinkronkan ke Firestore.', true);
+          }, { merge: false });
+          setFirebaseStatus('Mode saat ini: <strong>Firebase aktif</strong>. Data berhasil disinkronkan ke Firestore.', true);
           console.log("Firestore save sukses:", COLLECTION_NAME, DOCUMENT_ID);
         } catch (err) {
           setFirebaseStatus('Firebase gagal menyimpan data. Cek rules Firestore dan firebaseConfig.');
@@ -3827,37 +3843,47 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
 
       const snap = await getDoc(docRef);
       if (snap.exists()) {
+        // FIREBASE MENANG: setiap device selalu memakai data Firestore sebagai data utama.
         const cloudData = snap.data();
-        const localRaw = localStorage.getItem(LOCAL_KEY);
-        const localData = localRaw ? JSON.parse(localRaw) : null;
-        const cloudTime = cloudData.savedAt ? new Date(cloudData.savedAt).getTime() : 0;
-        const localTime = localData?.savedAt ? new Date(localData.savedAt).getTime() : 0;
+        localStorage.setItem(LOCAL_KEY, JSON.stringify(cloudData));
 
-        if (!localData || cloudTime > localTime) {
-          localStorage.setItem(LOCAL_KEY, JSON.stringify(cloudData));
-          if (window.applyData) window.applyData(cloudData);
-          setFirebaseStatus('Mode saat ini: <strong>Firebase + localStorage aktif</strong>. Data terbaru berhasil dimuat dari Firestore.', true);
-        } else {
-          setFirebaseStatus('Mode saat ini: <strong>Firebase + localStorage aktif</strong>. Data lokal lebih baru, siap disinkronkan.', true);
+        if (window.applyData) {
+          window.applyData(cloudData);
         }
+
+        setFirebaseStatus('Mode saat ini: <strong>Firebase aktif</strong>. Data dimuat dari Firestore sebagai sumber utama.', true);
+        console.log("Data Firestore dipakai sebagai data utama:", cloudData);
       } else {
-        const initialData = window.collectData ? window.collectData() : {
+        // Kalau dokumen Firestore belum ada, baru pakai localStorage sebagai data awal.
+        const localRaw = localStorage.getItem(LOCAL_KEY);
+        const initialData = localRaw ? JSON.parse(localRaw) : (window.collectData ? window.collectData() : {
           votes: {},
           prices: { beli: {}, sewa: {} },
           checklist: [],
           procurement: {},
           savedAt: new Date().toISOString()
-        };
-        await setDoc(docRef, initialData, { merge: true });
-        setFirebaseStatus('Mode saat ini: <strong>Firebase + localStorage aktif</strong>. Dokumen Firestore baru berhasil dibuat.', true);
+        });
+
+        await setDoc(docRef, {
+          ...initialData,
+          syncedAt: new Date().toISOString()
+        }, { merge: false });
+
+        localStorage.setItem(LOCAL_KEY, JSON.stringify(initialData));
+        if (window.applyData) window.applyData(initialData);
+
+        setFirebaseStatus('Mode saat ini: <strong>Firebase aktif</strong>. Dokumen Firestore baru dibuat dari data awal.', true);
       }
     } catch (err) {
-      setFirebaseStatus('Firebase gagal aktif. Cek Console Browser, firebaseConfig, dan Firestore Rules.');
+      setFirebaseStatus('Firebase gagal aktif. Website memakai localStorage backup. Cek Console Browser, firebaseConfig, dan Firestore Rules.');
+      if (window.loadLocalBackup) window.loadLocalBackup();
       console.error("Firebase init/load gagal:", err);
     }
   }
 </script>
 
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"7939e04a4baf43c8b86a560f74aac60e","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"8d57f005eff546ba871311748ac6df7b","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"7939e04a4baf43c8b86a560f74aac60e","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"8d57f005eff546ba871311748ac6df7b","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
