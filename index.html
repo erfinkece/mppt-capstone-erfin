@@ -1160,6 +1160,9 @@
         📂 Import
         <input type="file" accept=".json" onchange="importData(this)" style="display: none;">
       </label>
+      <button class="data-btn export" onclick="pushLocalToCloud()" title="Paksa upload data di browser ini ke Firebase sebagai data master">
+        ☁️ Upload Master
+      </button>
       <button class="data-btn clear" onclick="clearAll()" title="Hapus semua data tersimpan">
         🗑️ Clear All
       </button>
@@ -3330,6 +3333,10 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
   // STORAGE SYSTEM — Firebase sebagai sumber utama, localStorage hanya backup
   // =============================================
   const STORAGE_KEY = 'mppt_capstone_data_v1';
+  // Kunci autosave saat halaman pertama kali dibuka.
+  // Ini mencegah data default/lama menimpa Firestore sebelum proses load Firebase selesai.
+  window._allowAutoSave = false;
+  window._initialCloudLoadDone = false;
   
   
   function enhanceBOMCards() {
@@ -3449,6 +3456,13 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
 
   function saveAll() {
     try {
+      // Jangan simpan apa pun sebelum Firebase/local backup selesai dimuat.
+      // Kalau tidak, kalkulator awal bisa menimpa data cloud dengan data default.
+      if (!window._allowAutoSave) {
+        console.log('Auto-save ditahan sampai data awal selesai dimuat.');
+        return;
+      }
+
       const data = collectData();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       showSaveIndicator();
@@ -3543,6 +3557,32 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
       }
     };
     reader.readAsText(file);
+  }
+  
+  async function pushLocalToCloud() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        alert('Belum ada data lokal di browser ini. Kalau data benar masih tampil di tab lain, export dulu dari tab itu lalu import di sini.');
+        return;
+      }
+      if (!window.saveDataToCloud) {
+        alert('Firebase belum aktif/siap. Cek koneksi internet, firebaseConfig, dan Firestore Rules.');
+        return;
+      }
+      const data = JSON.parse(raw);
+      if (!confirm('Jadikan data di browser ini sebagai MASTER dan upload ke Firebase? Device lain nanti akan ikut data ini.')) return;
+      window._allowAutoSave = true;
+      await window.saveDataToCloud({
+        ...data,
+        savedAt: new Date().toISOString(),
+        forcedMasterAt: new Date().toISOString()
+      });
+      alert('Data master berhasil di-upload ke Firebase. Sekarang buka/reload di HP atau device lain.');
+    } catch (err) {
+      alert('Upload master gagal: ' + err.message);
+      console.error('Upload master gagal:', err);
+    }
   }
   
   function showSaveIndicator() {
@@ -3804,6 +3844,8 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
   if (!isConfigFilled(firebaseConfig)) {
     setFirebaseStatus('Mode saat ini: <strong>localStorage aktif</strong>. Firebase belum aktif karena firebaseConfig baru belum diisi.');
     if (window.loadLocalBackup) window.loadLocalBackup();
+    window._initialCloudLoadDone = true;
+    window._allowAutoSave = true;
     console.log("Firebase belum aktif: memakai localStorage sebagai backup.");
   } else {
     try {
@@ -3843,16 +3885,56 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
 
       const snap = await getDoc(docRef);
       if (snap.exists()) {
-        // FIREBASE MENANG: setiap device selalu memakai data Firestore sebagai data utama.
         const cloudData = snap.data();
-        localStorage.setItem(LOCAL_KEY, JSON.stringify(cloudData));
+        const localRaw = localStorage.getItem(LOCAL_KEY);
+        let dataToUse = cloudData;
+        let usingLocalAsMaster = false;
 
-        if (window.applyData) {
-          window.applyData(cloudData);
+        // Default: Firebase tetap sumber utama.
+        // Tapi jika laptop ini punya localStorage yang lebih baru, minta konfirmasi dulu.
+        // Ini membantu saat data benar masih ada di laptop, sementara Firebase masih menyimpan data lama.
+        try {
+          const localData = localRaw ? JSON.parse(localRaw) : null;
+          const cloudTime = cloudData?.savedAt ? new Date(cloudData.savedAt).getTime() : 0;
+          const localTime = localData?.savedAt ? new Date(localData.savedAt).getTime() : 0;
+          if (localData && localTime > cloudTime + 60000) {
+            usingLocalAsMaster = confirm(
+              'Data di browser/laptop ini terlihat lebih baru daripada Firebase.\n\n' +
+              'Pilih OK jika data di laptop ini adalah data yang BENAR dan mau dijadikan MASTER untuk semua device.\n' +
+              'Pilih Cancel jika tetap mau pakai data dari Firebase.'
+            );
+            if (usingLocalAsMaster) {
+              dataToUse = {
+                ...localData,
+                savedAt: new Date().toISOString(),
+                forcedMasterAt: new Date().toISOString()
+              };
+              await setDoc(docRef, {
+                ...dataToUse,
+                syncedAt: new Date().toISOString()
+              }, { merge: false });
+            }
+          }
+        } catch (compareErr) {
+          console.warn('Gagal membandingkan data lokal vs Firebase:', compareErr);
         }
 
-        setFirebaseStatus('Mode saat ini: <strong>Firebase aktif</strong>. Data dimuat dari Firestore sebagai sumber utama.', true);
-        console.log("Data Firestore dipakai sebagai data utama:", cloudData);
+        localStorage.setItem(LOCAL_KEY, JSON.stringify(dataToUse));
+
+        if (window.applyData) {
+          window.applyData(dataToUse);
+        }
+
+        window._initialCloudLoadDone = true;
+        window._allowAutoSave = true;
+
+        if (usingLocalAsMaster) {
+          setFirebaseStatus('Mode saat ini: <strong>Firebase aktif</strong>. Data laptop dijadikan MASTER dan sudah di-upload ke Firestore.', true);
+          console.log("Data lokal dijadikan master dan di-upload ke Firestore:", dataToUse);
+        } else {
+          setFirebaseStatus('Mode saat ini: <strong>Firebase aktif</strong>. Data dimuat dari Firestore sebagai sumber utama.', true);
+          console.log("Data Firestore dipakai sebagai data utama:", dataToUse);
+        }
       } else {
         // Kalau dokumen Firestore belum ada, baru pakai localStorage sebagai data awal.
         const localRaw = localStorage.getItem(LOCAL_KEY);
@@ -3871,19 +3953,20 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
 
         localStorage.setItem(LOCAL_KEY, JSON.stringify(initialData));
         if (window.applyData) window.applyData(initialData);
+        window._initialCloudLoadDone = true;
+        window._allowAutoSave = true;
 
         setFirebaseStatus('Mode saat ini: <strong>Firebase aktif</strong>. Dokumen Firestore baru dibuat dari data awal.', true);
       }
     } catch (err) {
       setFirebaseStatus('Firebase gagal aktif. Website memakai localStorage backup. Cek Console Browser, firebaseConfig, dan Firestore Rules.');
       if (window.loadLocalBackup) window.loadLocalBackup();
+      window._initialCloudLoadDone = true;
+      window._allowAutoSave = true;
       console.error("Firebase init/load gagal:", err);
     }
   }
 </script>
-
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"7939e04a4baf43c8b86a560f74aac60e","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"8d57f005eff546ba871311748ac6df7b","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"7939e04a4baf43c8b86a560f74aac60e","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"8d57f005eff546ba871311748ac6df7b","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
