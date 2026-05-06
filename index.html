@@ -2086,16 +2086,16 @@
         </div>
       </div>
       
-      <div class="card" data-name="Terminal Block Kabel Krustin 4-6mm" data-category="kabel" data-default-vote="beli">
+      <div class="card" data-name="Terminal Block Kabel Krustin 4-6mm" data-category="kabel" data-default-vote="beli" data-default-procured="true" data-search="terminal blok terminal block kabel krustin konektor sambungan kabel 4-6mm 4–6mm salah beli bukan heat shrink sudah terbeli">
         <div class="status-badges">
           <span class="status-badge badge-done">✅ Sudah Terbeli</span>
           <span class="status-badge badge-warning">⚠ Bukan Heat Shrink</span>
         </div>
         <div class="card-header">
-          <div class="card-name">Terminal Block Kabel Krustin 4–6mm</div>
+          <div class="card-name">Terminal Blok Kabel Krustin 4–6mm</div>
           <div class="card-qty">2 pcs</div>
         </div>
-        <div class="card-spec">Terminal/konektor sambungan kabel ukuran 4–6mm · dipakai untuk sambungan kabel daya di dalam box</div>
+        <div class="card-spec">Terminal blok/konektor sambungan kabel ukuran 4–6mm · dipakai untuk sambungan kabel daya di dalam box</div>
         <div class="card-function">
           <strong>FUNGSI</strong>
           Penyambung kabel daya agar sambungan panel, aki, pompa, atau jalur dioda-induktor lebih rapi dan kuat tanpa sambungan menggantung.
@@ -3524,6 +3524,13 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
 
       const cb = box.querySelector('.procurement-checkbox');
       const input = box.querySelector('.procurement-input');
+
+      // Default untuk item yang memang sudah terbeli/tersedia dari HTML.
+      if (card.dataset.defaultProcured === 'true' && cb) {
+        cb.checked = true;
+        card.classList.add('procured');
+      }
+
       cb.addEventListener('change', () => {
         card.classList.toggle('procured', cb.checked);
         if (typeof filterBOMCards === 'function') filterBOMCards();
@@ -3623,6 +3630,17 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
         card.classList.toggle('procured', !!state.procured);
       });
     }
+
+    // Jika data lama dari Firebase belum punya item baru, status default dari HTML tetap dipakai.
+    document.querySelectorAll('.card[data-default-procured="true"]').forEach(card => {
+      const name = card.dataset.name;
+      const hasSavedProcurement = data.procurement && Object.prototype.hasOwnProperty.call(data.procurement, name);
+      if (!hasSavedProcurement) {
+        const cb = card.querySelector('.procurement-checkbox');
+        if (cb) cb.checked = true;
+        card.classList.add('procured');
+      }
+    });
 
     if (data.savedAt) {
       const date = new Date(data.savedAt);
@@ -3843,7 +3861,7 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
     cards.forEach(card => {
       const vote = getCardVote(card);
       const procured = !!card.querySelector('.procurement-checkbox')?.checked;
-      const haystack = (card.dataset.name + ' ' + card.textContent).toLowerCase();
+      const haystack = ((card.dataset.name || '') + ' ' + (card.dataset.search || '') + ' ' + card.textContent).toLowerCase();
       const matchesSearch = !query || haystack.includes(query);
       let matchesFilter = true;
 
