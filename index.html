@@ -1944,6 +1944,31 @@
         </div>
       </div>
       
+      <div class="card" data-name="Terminal Block Kabel Krustin 4-6mm" data-category="kabel" data-default-vote="beli">
+        <div class="status-badges">
+          <span class="status-badge badge-done">✅ Sudah Terbeli</span>
+          <span class="status-badge badge-warning">⚠ Bukan Heat Shrink</span>
+        </div>
+        <div class="card-header">
+          <div class="card-name">Terminal Block Kabel Krustin 4–6mm</div>
+          <div class="card-qty">2 pcs</div>
+        </div>
+        <div class="card-spec">Terminal/konektor sambungan kabel ukuran 4–6mm · dipakai untuk sambungan kabel daya di dalam box</div>
+        <div class="card-function">
+          <strong>FUNGSI</strong>
+          Penyambung kabel daya agar sambungan panel, aki, pompa, atau jalur dioda-induktor lebih rapi dan kuat tanpa sambungan menggantung.
+        </div>
+        <div class="card-note important">Barang ini tetap dihitung sebagai biaya pembelian. Catatan: ini bukan pengganti heat shrink tube, jadi heat shrink tetap perlu dibeli untuk isolasi sambungan.</div>
+        <div class="vote-section">
+          <div class="vote-label">Pilih cara dapatnya:</div>
+          <div class="vote-buttons">
+            <button class="vote-btn beli active" onclick="vote(this)">🛒 Beli</button>
+            <button class="vote-btn sewa" onclick="vote(this)">🏛️ Sewa Lab</button>
+            <button class="vote-btn punya" onclick="vote(this)">✅ Punya</button>
+          </div>
+        </div>
+      </div>
+      
       
 <div class="card" data-name="Fuse Holder Panel Pompa" data-category="kabel">
         <div class="status-badges"><span class="status-badge badge-urgent">🔥 Proteksi Wajib</span></div>
@@ -3422,6 +3447,18 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
         }
       });
     }
+
+    // Komponen baru yang memang sudah terbeli bisa tetap masuk kalkulator,
+    // walaupun data lama di Firebase/localStorage belum punya vote untuk item itu.
+    document.querySelectorAll('.card[data-default-vote]').forEach(card => {
+      const name = card.dataset.name;
+      const hasSavedVote = data.votes && Object.prototype.hasOwnProperty.call(data.votes, name);
+      if (!hasSavedVote) {
+        const defaultVote = card.dataset.defaultVote;
+        const btn = card.querySelector(`.vote-btn.${defaultVote}`);
+        if (btn) btn.classList.add('active');
+      }
+    });
 
     document.querySelectorAll('.checklist-item').forEach(item => item.classList.remove('checked'));
     if (data.checklist) {
