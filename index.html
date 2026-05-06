@@ -1026,6 +1026,124 @@
     box-shadow: 0 0 0 1px rgba(0,255,136,0.25), 0 12px 30px rgba(0,255,136,0.08);
   }
 
+
+
+  /* BOM SEARCH & FILTER */
+  .bom-filter-bar {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    margin: -8px 0 28px;
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) 2fr;
+    gap: 16px;
+    align-items: end;
+  }
+
+  .bom-search-box label,
+  .bom-filter-box label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .bom-search-input {
+    width: 100%;
+    padding: 12px 14px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 14px;
+  }
+
+  .bom-search-input:focus {
+    outline: none;
+    border-color: var(--accent-cyan);
+    background: rgba(0, 217, 255, 0.05);
+  }
+
+  .bom-filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .bom-filter-btn {
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.3);
+    color: var(--text-secondary);
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .bom-filter-btn:hover,
+  .bom-filter-btn.active {
+    transform: translateY(-1px);
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+    background: rgba(0, 217, 255, 0.10);
+  }
+
+  .bom-filter-btn .count {
+    color: var(--accent-green);
+    margin-left: 4px;
+  }
+
+  .bom-filter-empty {
+    display: none;
+    padding: 18px;
+    margin: 0 0 24px;
+    text-align: center;
+    color: var(--text-muted);
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px dashed var(--border);
+    border-radius: 14px;
+  }
+
+  .card.filtered-out {
+    display: none !important;
+  }
+
+  .sewa-note {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-bottom: 14px;
+    padding: 10px 12px;
+    background: rgba(255, 149, 0, 0.06);
+    border-left: 3px solid var(--accent-orange);
+    border-radius: 10px;
+  }
+
+  .calc-table select {
+    width: 100%;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .calc-table select:focus {
+    outline: none;
+    border-color: var(--accent-cyan);
+    background: rgba(0, 217, 255, 0.05);
+  }
+
   /* RESPONSIVE - DESKTOP TABLET */
   @media (max-width: 968px) {
     .nav-menu { gap: 4px; }
@@ -1078,6 +1196,10 @@
     .comparison-table { font-size: 12px; display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .comparison-table th, .comparison-table td { padding: 10px 8px; font-size: 12px; }
     
+    .bom-filter-bar { grid-template-columns: 1fr; padding: 14px; }
+    .bom-filter-buttons { gap: 6px; }
+    .bom-filter-btn { font-size: 11px; padding: 8px 10px; }
+    
     .calc-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .calc-table th, .calc-table td { padding: 10px 8px; font-size: 12px; }
     .calc-table input { padding: 6px 8px; font-size: 12px; }
@@ -1119,7 +1241,7 @@
   <div class="nav-container">
     <div class="nav-brand">⚡ MPPT Capstone</div>
     <ul class="nav-menu">
-      <li><a href="#bom">📋 BOM</a></li>
+      <li><a href="#bom">🔎 Cari BOM</a></li>
       <li><a href="#kalkulator-beli">🛒 Beli</a></li>
       <li><a href="#kalkulator-sewa">🏛️ Sewa</a></li>
       <li><a href="#total-akhir">💰 Total</a></li>
@@ -1178,6 +1300,26 @@
         <p>Pilih cara dapat tiap komponen: 🛒 Beli / 🏛️ Sewa Lab / ✅ Sudah Punya</p>
       </div>
     </div>
+
+    <div class="bom-filter-bar" id="bom-filter-bar">
+      <div class="bom-search-box">
+        <label for="bom-search-input">🔎 Cari barang</label>
+        <input type="search" id="bom-search-input" class="bom-search-input" placeholder="Ketik nama barang, fungsi, atau spesifikasi...">
+      </div>
+      <div class="bom-filter-box">
+        <label>Pilah status barang</label>
+        <div class="bom-filter-buttons">
+          <button type="button" class="bom-filter-btn active" data-filter="all">Semua <span class="count" id="count-all">0</span></button>
+          <button type="button" class="bom-filter-btn" data-filter="beli">Tanda Beli <span class="count" id="count-beli">0</span></button>
+          <button type="button" class="bom-filter-btn" data-filter="belum-beli">Belum Beli <span class="count" id="count-belum-beli">0</span></button>
+          <button type="button" class="bom-filter-btn" data-filter="belum-dipilih">Belum Dipilih <span class="count" id="count-belum-dipilih">0</span></button>
+          <button type="button" class="bom-filter-btn" data-filter="sewa">Sewa <span class="count" id="count-sewa">0</span></button>
+          <button type="button" class="bom-filter-btn" data-filter="punya">Punya <span class="count" id="count-punya">0</span></button>
+          <button type="button" class="bom-filter-btn" data-filter="procured">Sudah Ada <span class="count" id="count-procured">0</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="bom-filter-empty" id="bom-filter-empty">Barang tidak ditemukan. Coba kata kunci lain atau ubah filter status.</div>
     
     <!-- POWER -->
     <h3 style="color: var(--accent-orange); margin: 24px 0 16px; font-size: 18px;">☀️ Sumber Energi & Aktuator Daya</h3>
@@ -2171,7 +2313,7 @@
       <div class="section-icon icon-calc">🏛️</div>
       <div class="section-title">
         <h2>Kalkulator Sewa Lab</h2>
-        <p>Daftar alat yang dipinjam dari lab. Masukkan harga sewa per bulan dan durasi pakai</p>
+        <p>Daftar alat yang dipinjam dari lab. Masukkan harga opsi sewa 1, 2, atau 3 bulan lalu pilih durasi yang dipakai.</p>
       </div>
     </div>
     
@@ -3384,6 +3526,7 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
       const input = box.querySelector('.procurement-input');
       cb.addEventListener('change', () => {
         card.classList.toggle('procured', cb.checked);
+        if (typeof filterBOMCards === 'function') filterBOMCards();
         saveAll();
       });
       input.addEventListener('input', saveAll);
@@ -3489,6 +3632,7 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
 
     syncCalculators();
     updateChecklistProgress();
+    if (typeof filterBOMCards === 'function') filterBOMCards();
   }
 
   function saveAll() {
@@ -3648,6 +3792,94 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
     }
   }
   
+
+  // =============================================
+  // BOM SEARCH & FILTER
+  // =============================================
+  let currentBOMFilter = 'all';
+
+  function getCardVote(card) {
+    const activeBtn = card.querySelector('.vote-btn.active');
+    if (!activeBtn) return '';
+    if (activeBtn.classList.contains('beli')) return 'beli';
+    if (activeBtn.classList.contains('sewa')) return 'sewa';
+    if (activeBtn.classList.contains('punya')) return 'punya';
+    return '';
+  }
+
+  function updateBOMFilterCounts() {
+    const cards = Array.from(document.querySelectorAll('#bom .card[data-name]'));
+    const counts = {
+      all: cards.length,
+      beli: 0,
+      'belum-beli': 0,
+      'belum-dipilih': 0,
+      sewa: 0,
+      punya: 0,
+      procured: 0
+    };
+
+    cards.forEach(card => {
+      const vote = getCardVote(card);
+      if (vote === 'beli') counts.beli++;
+      if (vote !== 'beli') counts['belum-beli']++;
+      if (!vote) counts['belum-dipilih']++;
+      if (vote === 'sewa') counts.sewa++;
+      if (vote === 'punya') counts.punya++;
+      if (card.querySelector('.procurement-checkbox')?.checked) counts.procured++;
+    });
+
+    Object.keys(counts).forEach(key => {
+      const el = document.getElementById('count-' + key);
+      if (el) el.textContent = counts[key];
+    });
+  }
+
+  function filterBOMCards() {
+    const query = (document.getElementById('bom-search-input')?.value || '').trim().toLowerCase();
+    const cards = Array.from(document.querySelectorAll('#bom .card[data-name]'));
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+      const vote = getCardVote(card);
+      const procured = !!card.querySelector('.procurement-checkbox')?.checked;
+      const haystack = (card.dataset.name + ' ' + card.textContent).toLowerCase();
+      const matchesSearch = !query || haystack.includes(query);
+      let matchesFilter = true;
+
+      if (currentBOMFilter === 'beli') matchesFilter = vote === 'beli';
+      else if (currentBOMFilter === 'belum-beli') matchesFilter = vote !== 'beli';
+      else if (currentBOMFilter === 'belum-dipilih') matchesFilter = !vote;
+      else if (currentBOMFilter === 'sewa') matchesFilter = vote === 'sewa';
+      else if (currentBOMFilter === 'punya') matchesFilter = vote === 'punya';
+      else if (currentBOMFilter === 'procured') matchesFilter = procured;
+
+      const visible = matchesSearch && matchesFilter;
+      card.classList.toggle('filtered-out', !visible);
+      if (visible) visibleCount++;
+    });
+
+    const empty = document.getElementById('bom-filter-empty');
+    if (empty) empty.style.display = visibleCount === 0 ? 'block' : 'none';
+    updateBOMFilterCounts();
+  }
+
+  function initBOMFilters() {
+    const input = document.getElementById('bom-search-input');
+    if (input) input.addEventListener('input', filterBOMCards);
+
+    document.querySelectorAll('.bom-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.bom-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentBOMFilter = btn.dataset.filter || 'all';
+        filterBOMCards();
+      });
+    });
+
+    filterBOMCards();
+  }
+
   // =============================================
   // VOTE SYSTEM
   // =============================================
@@ -3658,6 +3890,7 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
     buttons.forEach(b => b.classList.remove('active'));
     if (!wasActive) btn.classList.add('active');
     syncCalculators();
+    if (typeof filterBOMCards === 'function') filterBOMCards();
     saveAll();
   }
   
@@ -3725,14 +3958,17 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
       sewaTotal.style.display = 'none';
     } else {
       sewaList.innerHTML = `
+        <div class="sewa-note">Isi harga sesuai durasi sewa. Pilih 1/2/3 bulan di kolom durasi. Kalau harga 2 atau 3 bulan kosong, sistem otomatis pakai harga 1 bulan × durasi.</div>
         <table class="calc-table">
           <thead>
             <tr>
               <th>Alat</th>
               <th style="text-align: center;">Qty</th>
-              <th style="text-align: right;">Sewa/Bulan (Rp)</th>
-              <th style="text-align: center;">Bulan</th>
-              <th style="text-align: right;">Subtotal</th>
+              <th style="text-align: right; min-width: 140px;">Harga 1 Bulan</th>
+              <th style="text-align: right; min-width: 140px;">Harga 2 Bulan</th>
+              <th style="text-align: right; min-width: 140px;">Harga 3 Bulan</th>
+              <th style="text-align: center; min-width: 120px;">Pilih Durasi</th>
+              <th style="text-align: right; min-width: 130px;">Subtotal</th>
             </tr>
           </thead>
           <tbody>
@@ -3743,12 +3979,23 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
                   <td>${item.name}</td>
                   <td style="text-align: center; color: var(--accent-cyan);">${item.qty}</td>
                   <td>
-                    <input type="number" placeholder="0" data-type="sewa-perbulan" 
-                      oninput="recalc()" value="${saved.harga || ''}">
+                    <input type="number" placeholder="0" data-type="sewa-harga1" 
+                      oninput="recalc()" value="${saved.harga1 || ''}">
                   </td>
                   <td>
-                    <input type="number" placeholder="1" data-type="sewa-bulan" min="1"
-                      oninput="recalc()" value="${saved.bulan || '1'}" style="text-align: center;">
+                    <input type="number" placeholder="0" data-type="sewa-harga2" 
+                      oninput="recalc()" value="${saved.harga2 || ''}">
+                  </td>
+                  <td>
+                    <input type="number" placeholder="0" data-type="sewa-harga3" 
+                      oninput="recalc()" value="${saved.harga3 || ''}">
+                  </td>
+                  <td>
+                    <select data-type="sewa-bulan" onchange="recalc()">
+                      <option value="1" ${String(saved.bulan || '1') === '1' ? 'selected' : ''}>1 bulan</option>
+                      <option value="2" ${String(saved.bulan || '1') === '2' ? 'selected' : ''}>2 bulan</option>
+                      <option value="3" ${String(saved.bulan || '1') === '3' ? 'selected' : ''}>3 bulan</option>
+                    </select>
                   </td>
                   <td style="text-align: right; color: var(--accent-orange); font-weight: 700;" class="sewa-subtotal">Rp 0</td>
                 </tr>
@@ -3773,7 +4020,26 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
   }
   
   function getSavedSewa(name) {
-    return priceData.sewa[name] || { harga: '', bulan: '1' };
+    const saved = priceData.sewa[name] || {};
+
+    // Support data lama: { harga, bulan } dari versi sebelumnya.
+    if (Object.prototype.hasOwnProperty.call(saved, 'harga')) {
+      const harga = parseFloat(saved.harga) || 0;
+      const bulan = String(saved.bulan || '1');
+      return {
+        harga1: harga || '',
+        harga2: saved.harga2 || (harga ? harga * 2 : ''),
+        harga3: saved.harga3 || (harga ? harga * 3 : ''),
+        bulan
+      };
+    }
+
+    return {
+      harga1: saved.harga1 || '',
+      harga2: saved.harga2 || '',
+      harga3: saved.harga3 || '',
+      bulan: String(saved.bulan || '1')
+    };
   }
   
   // =============================================
@@ -3793,11 +4059,18 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
     
     document.querySelectorAll('#calc-sewa-list tbody tr').forEach(row => {
       const name = row.dataset.name;
-      const harga = parseFloat(row.querySelector('input[data-type="sewa-perbulan"]').value) || 0;
-      const bulan = parseFloat(row.querySelector('input[data-type="sewa-bulan"]').value) || 1;
-      const subtotal = harga * bulan;
+      const harga1 = parseFloat(row.querySelector('input[data-type="sewa-harga1"]')?.value) || 0;
+      const harga2Input = parseFloat(row.querySelector('input[data-type="sewa-harga2"]')?.value) || 0;
+      const harga3Input = parseFloat(row.querySelector('input[data-type="sewa-harga3"]')?.value) || 0;
+      const bulan = String(row.querySelector('[data-type="sewa-bulan"]')?.value || '1');
+
+      // Kalau harga 2/3 bulan belum diisi, otomatis dihitung dari harga 1 bulan.
+      const harga2 = harga2Input || (harga1 ? harga1 * 2 : 0);
+      const harga3 = harga3Input || (harga1 ? harga1 * 3 : 0);
+      const subtotalMap = { '1': harga1, '2': harga2, '3': harga3 };
+      const subtotal = subtotalMap[bulan] || 0;
       
-      priceData.sewa[name] = { harga, bulan };
+      priceData.sewa[name] = { harga1, harga2: harga2Input, harga3: harga3Input, bulan };
       
       row.querySelector('.sewa-subtotal').textContent = formatRp(subtotal);
       totalSewa += subtotal;
@@ -3835,10 +4108,11 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
   // INIT — order matters!
   // =============================================
   enhanceBOMCards();       // 1. Tambah kontrol pembelian & opsi pengganti di setiap kartu BOM
+  initBOMFilters();        // 2. Aktifkan pencarian dan filter status barang
   // Data utama sekarang dimuat oleh Firebase di script module bawah.
   // localStorage hanya dipakai sebagai backup jika Firebase belum aktif/gagal.
-  syncCalculators();       // 2. Render kalkulator awal
-  updateChecklistProgress(); // 3. Update checklist counter
+  syncCalculators();       // 3. Render kalkulator awal
+  updateChecklistProgress(); // 4. Update checklist counter
 </script>
 
 <script type="module">
