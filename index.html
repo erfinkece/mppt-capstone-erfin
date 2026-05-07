@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BOM & Documentation — Sistem Otomasi Pompa Air DC Tenaga Surya MPPT</title>
+<title>BOM & Documentation — Sistem Otomasi Pompa Air DC Tenaga Surya MPPT (v8 Freewheel Fix)</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   
@@ -2589,8 +2589,13 @@ Sisi arus utama (terminal screw ACS712):
 Sisi daya (terminal screw modul):
   B+ ──► PANEL+ (lewat ACS712)
   B- ──► PANEL- / GND
-  M+ ──► Induktor 100µH ──► AKI+ (lewat diode MBR1060/MBR1045)
-  M- ──► AKI-</pre>
+  M+ ──► TITIK SWITCHING (SW)
+  M- ──► GND / BATT-
+
+TITIK SWITCHING (SW) adalah titik gabungan:
+  M+ BTS7960 + Kaki 1 Induktor + Katoda Dioda Freewheel
+
+Kaki 2 Induktor ──► BATT+ / AKI+</pre>
     </div>
     
     <div class="wire-step">
@@ -2638,11 +2643,15 @@ Tekan = LOW = pindah menu</pre>
     </div>
     
     <div class="wire-step">
-      <h4><span class="wire-step-num">11</span>Diode Anti-Backflow (Penting!)</h4>
-      <pre>Output BTS7960 (M+) ──► Anoda MBR1060/MBR1045 ──► Katoda MBR1060/MBR1045 ──► Induktor ──► AKI+
+      <h4><span class="wire-step-num">11</span>Dioda Freewheel Buck (Sangat Krusial!)</h4>
+      <pre>Titik Pertemuan: Output BTS7960 (M+) & Kaki 1 Induktor ──► Katoda Dioda (Garis Putih)
+GND Rail / BATT- ──► Anoda Dioda (Tanpa Garis)
 
-Tujuan: Mencegah arus dari aki balik ke panel saat panel teduh atau malam.
-Dioda MBR1060/MBR1045 punya forward voltage drop ~0.4V, hilang sedikit tapi aman.</pre>
+Tujuan: Memberikan jalur buangan (freewheeling) bagi arus induktor saat sinyal PWM sedang OFF. Tanpa dioda ini, tegangan kejut dari induktor dapat menghantam dan merusak modul BTS7960!
+
+Catatan:
+- Dioda freewheel ini dipasang paralel ke GND, bukan seri di antara BTS7960 dan induktor.
+- Jika ingin proteksi anti-backflow tambahan, pasang dioda secara SERI di kabel positif panel surya sebelum masuk ACS712.</pre>
     </div>
   </section>
   
@@ -3175,7 +3184,7 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
         
         <div class="checklist-item" onclick="toggleCheck(this)">
           <div class="checkbox"></div>
-          <div class="checklist-text"><strong>17. Sambungkan panel surya</strong> — Cek polaritas, pastikan diode anti-backflow terpasang benar</div>
+          <div class="checklist-text"><strong>17. Sambungkan panel surya</strong> — Cek polaritas, pastikan dioda freewheel terpasang benar: katoda ke titik switching, anoda ke GND/BATT-</div>
         </div>
         
         <div class="checklist-item" onclick="toggleCheck(this)">
@@ -3253,7 +3262,7 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
       
       <h4>Aki tidak terisi</h4>
       <ul>
-        <li>Cek diode anti-backflow polaritas (anoda ke MPPT, katoda ke aki)</li>
+        <li>Cek dioda freewheel: katoda/garis putih ke titik switching sebelum induktor, anoda/tanpa garis ke GND/BATT-</li>
         <li>Ukur tegangan output BTS7960 — harus &gt; tegangan aki</li>
         <li>Cek panel — di matahari langsung minimal Voc 18-22V</li>
         <li>Cek induktor 100µH terpasang dengan benar</li>
