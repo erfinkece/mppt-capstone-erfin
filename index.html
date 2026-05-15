@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BOM & Documentation — Sistem Otomasi Pompa Air DC Tenaga Surya MPPT (v8 Freewheel Fix)</title>
+<title>BOM & Documentation — Sistem Otomasi Pompa Air DC Tenaga Surya MPPT (v12 Urunan Dadakan Monitoring)</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   
@@ -1144,6 +1144,119 @@
     background: rgba(0, 217, 255, 0.05);
   }
 
+
+  /* CUSTOM DADAKAN & MONITORING */
+  .dadakan-form {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) 110px 180px auto;
+    gap: 12px;
+    align-items: end;
+    margin-bottom: 18px;
+  }
+
+  .dadakan-form label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    margin-bottom: 7px;
+  }
+
+  .dadakan-form input {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 13px;
+  }
+
+  .dadakan-form input:focus {
+    outline: none;
+    border-color: var(--accent-cyan);
+    background: rgba(0, 217, 255, 0.05);
+  }
+
+  .dadakan-add-btn, .dadakan-delete-btn {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 800;
+    transition: all 0.2s;
+  }
+
+  .dadakan-add-btn {
+    padding: 11px 18px;
+    background: linear-gradient(135deg, rgba(0,255,136,0.22), rgba(0,217,255,0.18));
+    color: var(--accent-green);
+    border-color: rgba(0,255,136,0.35);
+    white-space: nowrap;
+  }
+
+  .dadakan-add-btn:hover, .dadakan-delete-btn:hover { transform: translateY(-2px); }
+
+  .dadakan-delete-btn {
+    padding: 7px 10px;
+    background: rgba(255, 62, 136, 0.12);
+    color: var(--accent-pink);
+    border-color: rgba(255, 62, 136, 0.3);
+  }
+
+  .split-total {
+    margin-top: 14px;
+    background: linear-gradient(135deg, rgba(255, 214, 10, 0.09), rgba(255, 149, 0, 0.09));
+    border-color: rgba(255, 214, 10, 0.3);
+  }
+
+  .split-total .calc-total-value {
+    background: var(--gradient-4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .monitor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin: 18px 0 24px;
+  }
+
+  .monitor-card {
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    text-align: center;
+  }
+
+  .monitor-label {
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .monitor-value {
+    color: var(--accent-cyan);
+    font-size: 26px;
+    font-weight: 900;
+    line-height: 1.1;
+  }
+
+  .monitor-unit {
+    color: var(--text-secondary);
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
   /* RESPONSIVE - DESKTOP TABLET */
   @media (max-width: 968px) {
     .nav-menu { gap: 4px; }
@@ -1197,6 +1310,9 @@
     .comparison-table th, .comparison-table td { padding: 10px 8px; font-size: 12px; }
     
     .bom-filter-bar { grid-template-columns: 1fr; padding: 14px; }
+    .dadakan-form { grid-template-columns: 1fr; }
+    .monitor-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .monitor-value { font-size: 21px; }
     .bom-filter-buttons { gap: 6px; }
     .bom-filter-btn { font-size: 11px; padding: 8px 10px; }
     
@@ -1245,6 +1361,8 @@
       <li><a href="#kalkulator-beli">🛒 Beli</a></li>
       <li><a href="#kalkulator-sewa">🏛️ Sewa</a></li>
       <li><a href="#total-akhir">💰 Total</a></li>
+      <li><a href="#alat-dadakan">➕ Dadakan</a></li>
+      <li><a href="#monitoring">📡 Monitoring</a></li>
       <li><a href="#mppt-vs-pwm">⚡ MPPT vs PWM</a></li>
       <li><a href="#wiring">🔌 Wiring</a></li>
       <li><a href="#testing">🧪 Testing</a></li>
@@ -1637,10 +1755,11 @@
     <!-- ACTUATOR -->
     <h3 style="color: var(--accent-pink); margin: 32px 0 16px; font-size: 18px;">⚙️ Aktuator & Switching</h3>
     <div class="grid">
-      <div class="card" data-name="Modul Relay 30A" data-category="actuator">
+      <div class="card" data-name="Modul Relay 30A" data-category="actuator" data-default-vote="beli" data-default-procured="true" data-default-price="32000" data-search="relay 30a modul relay 1 channel 5v 30 ampere high level trigger pompa sudah beli pengganti">
         <div class="status-badges">
           <span class="status-badge badge-urgent">🔥 Urgent</span>
           <span class="status-badge badge-warning">⚠ Min 30A</span>
+          <span class="status-badge badge-done">✅ Dibeli Rp32.000</span>
         </div>
         <div class="card-header">
           <div class="card-name">Modul Relay 1Ch 5V 30A</div>
@@ -1651,11 +1770,36 @@
           <strong>FUNGSI</strong>
           Switch on/off pompa 12V dari sinyal logika 5V Arduino. Optocoupler isolasi sisi logika dari sisi daya.
         </div>
-        <div class="card-note important">⚠ JANGAN beli relay 10A. Pompa 3A start bisa 9A. Cari yang 30A</div>
+        <div class="card-note important">⚠ JANGAN pakai relay 10A untuk pompa utama. Relay 30A ini tetap yang dipakai untuk jalur pompa.</div>
         <div class="vote-section">
           <div class="vote-label">Pilih cara dapatnya:</div>
           <div class="vote-buttons">
-            <button class="vote-btn beli" onclick="vote(this)">🛒 Beli</button>
+            <button class="vote-btn beli active" onclick="vote(this)">🛒 Beli</button>
+            <button class="vote-btn sewa" onclick="vote(this)">🏛️ Sewa Lab</button>
+            <button class="vote-btn punya" onclick="vote(this)">✅ Punya</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-name="Channel Relay 10A Cadangan" data-category="actuator" data-default-vote="beli" data-default-procured="true" data-default-price="12000" data-search="channel relay 10a relay 1 channel 5v cadangan testing logic bukan untuk pompa utama sudah beli">
+        <div class="status-badges">
+          <span class="status-badge badge-done">✅ Dibeli Rp12.000</span>
+          <span class="status-badge badge-warning">⚠ Cadangan/Test</span>
+        </div>
+        <div class="card-header">
+          <div class="card-name">Channel Relay 1Ch 5V 10A</div>
+          <div class="card-qty">1 pcs</div>
+        </div>
+        <div class="card-spec">Relay module 1 channel 5V · contact 10A · dipakai sebagai cadangan/testing logic, bukan relay utama pompa</div>
+        <div class="card-function">
+          <strong>FUNGSI</strong>
+          Komponen cadangan atau pengganti sementara untuk uji trigger relay. Tidak direkomendasikan untuk jalur pompa utama karena arus start pompa bisa tinggi.
+        </div>
+        <div class="card-note important">Masuk biaya realisasi karena sudah terbeli/terpakai saat proses debugging.</div>
+        <div class="vote-section">
+          <div class="vote-label">Pilih cara dapatnya:</div>
+          <div class="vote-buttons">
+            <button class="vote-btn beli active" onclick="vote(this)">🛒 Beli</button>
             <button class="vote-btn sewa" onclick="vote(this)">🏛️ Sewa Lab</button>
             <button class="vote-btn punya" onclick="vote(this)">✅ Punya</button>
           </div>
@@ -2152,6 +2296,201 @@
           </div>
         </div>
       </div>
+
+      <div class="card" data-name="Kabel Tambahan Power dan Sinyal" data-category="kabel" data-default-vote="beli" data-default-procured="true" data-default-price="250000" data-search="kabel tambahan kabel kurang kabel power kabel sinyal merah hitam dupont pelangi cadangan debugging">
+        <div class="status-badges">
+          <span class="status-badge badge-done">✅ Tambahan</span>
+          <span class="status-badge badge-warning">⚠ Kabel Kurang</span>
+        </div>
+        <div class="card-header">
+          <div class="card-name">Kabel Tambahan Power & Sinyal</div>
+          <div class="card-qty">1 paket</div>
+        </div>
+        <div class="card-spec">Tambahan kabel merah-hitam, kabel sinyal, jumper, dan cadangan kabel untuk revisi wiring di box</div>
+        <div class="card-function">
+          <strong>FUNGSI</strong>
+          Menutup kebutuhan kabel yang kurang saat proses perakitan, debugging fuse, dan perapian sambungan power/logic.
+        </div>
+        <div class="card-note important">Harga estimasi bisa kamu ubah kalau nota kabel sebenarnya berbeda.</div>
+        <div class="vote-section">
+          <div class="vote-label">Pilih cara dapatnya:</div>
+          <div class="vote-buttons">
+            <button class="vote-btn beli active" onclick="vote(this)">🛒 Beli</button>
+            <button class="vote-btn sewa" onclick="vote(this)">🏛️ Sewa Lab</button>
+            <button class="vote-btn punya" onclick="vote(this)">✅ Punya</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-name="Komponen Rusak dan Beli Ulang" data-category="kabel" data-default-vote="beli" data-default-procured="true" data-default-price="200000" data-search="komponen rusak beli ulang selisih realisasi total project biaya tambahan nota lupa cadangan">
+        <div class="status-badges">
+          <span class="status-badge badge-warning">⚠ Penyesuaian Total</span>
+          <span class="status-badge badge-done">✅ Masuk Realisasi</span>
+        </div>
+        <div class="card-header">
+          <div class="card-name">Komponen Rusak / Beli Ulang</div>
+          <div class="card-qty">1 paket</div>
+        </div>
+        <div class="card-spec">Pos khusus untuk komponen yang benar-benar rusak atau harus dibeli ulang. Nilai dibuat pas Rp200.000 agar tidak semua selisih dimasukkan ke komponen rusak.</div>
+        <div class="card-function">
+          <strong>FUNGSI</strong>
+          Mencatat biaya komponen rusak/beli ulang secara wajar, bukan menampung semua selisih biaya proyek.
+        </div>
+        <div class="card-note important">Nilai ini dikunci Rp200.000 sesuai revisi agar rekap biaya lebih masuk akal.</div>
+        <div class="vote-section">
+          <div class="vote-label">Pilih cara dapatnya:</div>
+          <div class="vote-buttons">
+            <button class="vote-btn beli active" onclick="vote(this)">🛒 Beli</button>
+            <button class="vote-btn sewa" onclick="vote(this)">🏛️ Sewa Lab</button>
+            <button class="vote-btn punya" onclick="vote(this)">✅ Punya</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-name="Terminal Block Skun Ferrule Cadangan" data-category="kabel" data-default-vote="beli" data-default-procured="true" data-default-price="125000" data-search="terminal block skun ferrule konektor kabel cadangan sambungan power wiring box">
+        <div class="status-badges">
+          <span class="status-badge badge-done">✅ Tambahan</span>
+          <span class="status-badge badge-warning">⚠ Wiring Power</span>
+        </div>
+        <div class="card-header">
+          <div class="card-name">Terminal Block, Skun & Ferrule Cadangan</div>
+          <div class="card-qty">1 paket</div>
+        </div>
+        <div class="card-spec">Terminal block tambahan, skun kabel, ferrule, konektor ring/garpu, dan cadangan konektor power</div>
+        <div class="card-function">
+          <strong>FUNGSI</strong>
+          Merapikan sambungan kabel arus besar dan memudahkan bongkar-pasang saat debugging SCC, BTS7960, aki, panel, dan pompa.
+        </div>
+        <div class="card-note important">Masuk realisasi biaya karena kebutuhan wiring bertambah saat perakitan.</div>
+        <div class="vote-section">
+          <div class="vote-label">Pilih cara dapatnya:</div>
+          <div class="vote-buttons">
+            <button class="vote-btn beli active" onclick="vote(this)">🛒 Beli</button>
+            <button class="vote-btn sewa" onclick="vote(this)">🏛️ Sewa Lab</button>
+            <button class="vote-btn punya" onclick="vote(this)">✅ Punya</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-name="Heat Shrink Isolasi Cable Tie" data-category="kabel" data-default-vote="beli" data-default-procured="true" data-default-price="85000" data-search="heat shrink isolasi lakban kabel cable tie ties selongsong bakar rapih kabel box">
+        <div class="status-badges">
+          <span class="status-badge badge-done">✅ Tambahan</span>
+        </div>
+        <div class="card-header">
+          <div class="card-name">Heat Shrink, Isolasi & Cable Tie</div>
+          <div class="card-qty">1 paket</div>
+        </div>
+        <div class="card-spec">Selongsong bakar, lakban isolasi, cable tie, dan bahan perapian kabel</div>
+        <div class="card-function">
+          <strong>FUNGSI</strong>
+          Melindungi sambungan kabel, kaki dioda, koneksi induktor, serta mencegah short di dalam box panel.
+        </div>
+        <div class="card-note">Wajib untuk finishing dan keamanan wiring.</div>
+        <div class="vote-section">
+          <div class="vote-label">Pilih cara dapatnya:</div>
+          <div class="vote-buttons">
+            <button class="vote-btn beli active" onclick="vote(this)">🛒 Beli</button>
+            <button class="vote-btn sewa" onclick="vote(this)">🏛️ Sewa Lab</button>
+            <button class="vote-btn punya" onclick="vote(this)">✅ Punya</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-name="Fuse Holder dan Fuse Cadangan" data-category="kabel" data-default-vote="beli" data-default-procured="true" data-default-price="45000" data-search="fuse holder sekring fuse cadangan 5a 10a pengaman aki panel pompa">
+        <div class="status-badges">
+          <span class="status-badge badge-warning">⚠ Proteksi</span>
+        </div>
+        <div class="card-header">
+          <div class="card-name">Fuse Holder & Fuse Cadangan</div>
+          <div class="card-qty">1 paket</div>
+        </div>
+        <div class="card-spec">Fuse holder + sekring cadangan untuk jalur SCC, aki, panel, dan pompa</div>
+        <div class="card-function">
+          <strong>FUNGSI</strong>
+          Pengaman arus lebih saat pengujian. Dibutuhkan karena fuse sempat putus saat debugging wiring power.
+        </div>
+        <div class="card-note important">Jangan bypass fuse saat uji aki/panel.</div>
+        <div class="vote-section">
+          <div class="vote-label">Pilih cara dapatnya:</div>
+          <div class="vote-buttons">
+            <button class="vote-btn beli active" onclick="vote(this)">🛒 Beli</button>
+            <button class="vote-btn sewa" onclick="vote(this)">🏛️ Sewa Lab</button>
+            <button class="vote-btn punya" onclick="vote(this)">✅ Punya</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-name="Box Triplek Spacer Baut Mounting" data-category="kabel" data-default-vote="beli" data-default-procured="true" data-default-price="180000" data-search="box triplek spacer baut mur mounting dudukan pcb bts7960 relay induktor dioda finishing">
+        <div class="status-badges">
+          <span class="status-badge badge-done">✅ Mekanik</span>
+        </div>
+        <div class="card-header">
+          <div class="card-name">Box, Triplek, Spacer & Baut Mounting</div>
+          <div class="card-qty">1 paket</div>
+        </div>
+        <div class="card-spec">Kebutuhan mekanik: dudukan triplek/baseboard, spacer PCB, baut, mur, dan bahan mounting dalam box</div>
+        <div class="card-function">
+          <strong>FUNGSI</strong>
+          Menempatkan PCB, BTS7960, relay, terminal, induktor, dan dioda agar rapi serta aman saat sidang.
+        </div>
+        <div class="card-note">Masuk realisasi karena alat sudah masuk tahap perakitan fisik.</div>
+        <div class="vote-section">
+          <div class="vote-label">Pilih cara dapatnya:</div>
+          <div class="vote-buttons">
+            <button class="vote-btn beli active" onclick="vote(this)">🛒 Beli</button>
+            <button class="vote-btn sewa" onclick="vote(this)">🏛️ Sewa Lab</button>
+            <button class="vote-btn punya" onclick="vote(this)">✅ Punya</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-name="Ongkir dan Transport Pembelian Komponen" data-category="kabel" data-default-vote="beli" data-default-procured="true" data-default-price="172500" data-search="ongkir transport biaya kirim pembelian komponen bolak balik toko online marketplace">
+        <div class="status-badges">
+          <span class="status-badge badge-done">✅ Realisasi</span>
+        </div>
+        <div class="card-header">
+          <div class="card-name">Ongkir & Transport Pembelian Komponen</div>
+          <div class="card-qty">1 paket</div>
+        </div>
+        <div class="card-spec">Biaya kirim online, transport pembelian, dan pengambilan komponen tambahan</div>
+        <div class="card-function">
+          <strong>FUNGSI</strong>
+          Mencatat biaya non-komponen yang tetap keluar selama proses pembelian dan penggantian part.
+        </div>
+        <div class="card-note">Bukan alat sewa, jadi masuk biaya realisasi pembelian/project.</div>
+        <div class="vote-section">
+          <div class="vote-label">Pilih cara dapatnya:</div>
+          <div class="vote-buttons">
+            <button class="vote-btn beli active" onclick="vote(this)">🛒 Beli</button>
+            <button class="vote-btn sewa" onclick="vote(this)">🏛️ Sewa Lab</button>
+            <button class="vote-btn punya" onclick="vote(this)">✅ Punya</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-name="Cadangan Finishing dan Debugging" data-category="kabel" data-default-vote="beli" data-default-procured="true" data-default-price="200000" data-search="cadangan finishing debugging biaya tambahan kecil kecil mur baut konektor perapian revisi alat">
+        <div class="status-badges">
+          <span class="status-badge badge-warning">⚠ Cadangan Realisasi</span>
+        </div>
+        <div class="card-header">
+          <div class="card-name">Cadangan Finishing & Debugging</div>
+          <div class="card-qty">1 paket</div>
+        </div>
+        <div class="card-spec">Pos cadangan untuk kebutuhan kecil-kecil saat finishing, revisi wiring, dan debugging alat</div>
+        <div class="card-function">
+          <strong>FUNGSI</strong>
+          Menampung biaya real tambahan selain komponen rusak, misalnya konektor kecil, baut, isolasi tambahan, atau kebutuhan dadakan saat alat dirapikan.
+        </div>
+        <div class="card-note important">Dipisah dari komponen rusak agar rekap biaya tidak terlihat ditumpuk di satu item.</div>
+        <div class="vote-section">
+          <div class="vote-label">Pilih cara dapatnya:</div>
+          <div class="vote-buttons">
+            <button class="vote-btn beli active" onclick="vote(this)">🛒 Beli</button>
+            <button class="vote-btn sewa" onclick="vote(this)">🏛️ Sewa Lab</button>
+            <button class="vote-btn punya" onclick="vote(this)">✅ Punya</button>
+          </div>
+        </div>
+      </div>
     </div>
     
     <!-- TOOLS -->
@@ -2264,6 +2603,55 @@
         </div>
       </div>
       
+      <div class="card" data-name="Lem Tembak" data-category="tools" data-default-vote="beli" data-default-procured="true" data-default-price="48500" data-search="lem tembak glue gun hot melt lem alat bantu mounting kabel box sudah beli">
+        <div class="status-badges">
+          <span class="status-badge badge-done">✅ Dibeli Rp48.500</span>
+        </div>
+        <div class="card-header">
+          <div class="card-name">Lem Tembak / Glue Gun</div>
+          <div class="card-qty">1 pcs</div>
+        </div>
+        <div class="card-spec">Glue gun / lem tembak untuk mounting kabel dan komponen ringan di dalam box</div>
+        <div class="card-function">
+          <strong>FUNGSI</strong>
+          Membantu merapikan kabel, menahan komponen ringan, dan memperkuat posisi sambungan setelah wiring final dicek aman.
+        </div>
+        <div class="card-note important">Jangan jadikan lem tembak sebagai satu-satunya penahan induktor/komponen berat. Tetap pakai baut/cable tie.</div>
+        <div class="vote-section">
+          <div class="vote-label">Pilih cara dapatnya:</div>
+          <div class="vote-buttons">
+            <button class="vote-btn beli active" onclick="vote(this)">🛒 Beli</button>
+            <button class="vote-btn sewa" onclick="vote(this)">🏛️ Sewa Lab</button>
+            <button class="vote-btn punya" onclick="vote(this)">✅ Punya</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-name="Biaya Bantu Solder Agung" data-category="tools" data-default-vote="beli" data-default-procured="true" data-default-price="200000" data-search="agung biaya bantu solder jasa solder perakitan pcb bantuan solder 200000">
+        <div class="status-badges">
+          <span class="status-badge badge-done">✅ Jasa Rp200.000</span>
+          <span class="status-badge badge-warning">⚠ Biaya Perakitan</span>
+        </div>
+        <div class="card-header">
+          <div class="card-name">Biaya Bantu Solder Agung</div>
+          <div class="card-qty">1 jasa</div>
+        </div>
+        <div class="card-spec">Biaya bantuan solder/perakitan/debugging hardware</div>
+        <div class="card-function">
+          <strong>FUNGSI</strong>
+          Biaya jasa bantuan teknis saat solder komponen, pengecekan koneksi, dan perapian hardware tugas akhir.
+        </div>
+        <div class="card-note important">Masuk rekap biaya realisasi project, bukan komponen elektronik.</div>
+        <div class="vote-section">
+          <div class="vote-label">Pilih cara dapatnya:</div>
+          <div class="vote-buttons">
+            <button class="vote-btn beli active" onclick="vote(this)">🛒 Beli</button>
+            <button class="vote-btn sewa" onclick="vote(this)">🏛️ Sewa Lab</button>
+            <button class="vote-btn punya" onclick="vote(this)">✅ Punya</button>
+          </div>
+        </div>
+      </div>
+      
       <div class="card" data-name="Kabel USB Mini" data-category="tools">
         <div class="card-header">
           <div class="card-name">Kabel USB Mini-B</div>
@@ -2307,6 +2695,45 @@
     </div>
   </section>
   
+
+  <!-- =============== TAMBAHAN ALAT DADAKAN =============== -->
+  <section class="section" id="alat-dadakan">
+    <div class="section-header">
+      <div class="section-icon icon-tools">➕</div>
+      <div class="section-title">
+        <h2>Tambahan Alat Dadakan</h2>
+        <p>Untuk barang mendadak yang belum ada di BOM. Item di sini otomatis masuk total beli dan ikut tersimpan ke Firebase/localStorage.</p>
+      </div>
+    </div>
+
+    <div class="calc-box">
+      <div class="dadakan-form">
+        <div>
+          <label for="dadakan-name">Nama barang / biaya</label>
+          <input id="dadakan-name" type="text" placeholder="Contoh: Kabel merah hitam tambahan, baut, lem, ongkir">
+        </div>
+        <div>
+          <label for="dadakan-qty">Qty</label>
+          <input id="dadakan-qty" type="number" min="1" value="1">
+        </div>
+        <div>
+          <label for="dadakan-price">Harga satuan / total</label>
+          <input id="dadakan-price" type="number" min="0" placeholder="0">
+        </div>
+        <button class="dadakan-add-btn" type="button" onclick="addDadakanItem()">+ Tambah</button>
+      </div>
+
+      <div id="dadakan-list">
+        <div class="empty-state">Belum ada tambahan alat dadakan. Isi form di atas kalau ada pembelian mendadak.</div>
+      </div>
+
+      <div class="calc-total" id="dadakan-total-box" style="display: none;">
+        <div class="calc-total-label">Total Tambahan Dadakan</div>
+        <div class="calc-total-value" id="dadakan-total">Rp 0</div>
+      </div>
+    </div>
+  </section>
+
   <!-- =============== CALCULATOR SEWA =============== -->
   <section class="section" id="kalkulator-sewa">
     <div class="section-header">
@@ -2334,7 +2761,7 @@
       <div class="section-icon icon-calc">💰</div>
       <div class="section-title">
         <h2>Rekapitulasi Biaya Total</h2>
-        <p>Gabungan total beli + sewa lab dari kalkulator di atas</p>
+        <p>Gabungan total beli + tambahan dadakan + sewa lab. Sewa lab tetap Rp0 jika tidak diisi.</p>
       </div>
     </div>
     
@@ -2362,9 +2789,73 @@
         <div class="calc-total-label">💎 Grand Total Project</div>
         <div class="calc-total-value" id="rekap-total">Rp 0</div>
       </div>
+
+      <div class="calc-total split-total">
+        <div class="calc-total-label">👥 Urunan 2 Orang</div>
+        <div class="calc-total-value" id="rekap-urunan-dua">Rp 0 / orang</div>
+      </div>
+      <p style="color: var(--text-muted); font-size: 12px; margin-top: 10px;">Catatan: hitungan urunan otomatis = Grand Total ÷ 2 orang. Jika alat sewa tidak diberi harga, maka sewa tidak ikut menambah total.</p>
     </div>
   </section>
   
+
+  <!-- =============== MONITORING =============== -->
+  <section class="section" id="monitoring">
+    <div class="section-header">
+      <div class="section-icon icon-sensor">📡</div>
+      <div class="section-title">
+        <h2>Monitoring Sistem</h2>
+        <p>Area siap integrasi untuk pemantauan Vpanel, Ipanel, Vbatt, duty, dan status pompa.</p>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <h3>Monitoring Bisa Ditambahkan ke Website Ini</h3>
+      <p>Bisa. Website ini bisa dikembangkan menjadi dashboard monitoring. Agar data hardware masuk ke website, nanti perlu jalur pengirim data, misalnya <strong>ESP8266/ESP32 ke Firebase</strong>, atau <strong>Arduino → laptop serial → Firebase</strong>.</p>
+      <p>Untuk versi sekarang, bagian ini saya siapkan sebagai pondasi tampilan monitoring. Nilainya masih placeholder sampai kita hubungkan ke sumber data real.</p>
+
+      <div class="monitor-grid">
+        <div class="monitor-card">
+          <div class="monitor-label">Vpanel</div>
+          <div class="monitor-value" id="mon-vpanel">--</div>
+          <div class="monitor-unit">Volt</div>
+        </div>
+        <div class="monitor-card">
+          <div class="monitor-label">Ipanel</div>
+          <div class="monitor-value" id="mon-ipanel">--</div>
+          <div class="monitor-unit">Ampere</div>
+        </div>
+        <div class="monitor-card">
+          <div class="monitor-label">Ppanel</div>
+          <div class="monitor-value" id="mon-ppanel">--</div>
+          <div class="monitor-unit">Watt</div>
+        </div>
+        <div class="monitor-card">
+          <div class="monitor-label">Vbatt</div>
+          <div class="monitor-value" id="mon-vbatt">--</div>
+          <div class="monitor-unit">Volt</div>
+        </div>
+        <div class="monitor-card">
+          <div class="monitor-label">Duty</div>
+          <div class="monitor-value" id="mon-duty">--</div>
+          <div class="monitor-unit">%</div>
+        </div>
+        <div class="monitor-card">
+          <div class="monitor-label">Pompa</div>
+          <div class="monitor-value" id="mon-pump">--</div>
+          <div class="monitor-unit">ON / OFF</div>
+        </div>
+      </div>
+
+      <h4>Rencana Integrasi Monitoring</h4>
+      <ol>
+        <li><strong>Opsi paling rapi:</strong> tambah ESP8266/ESP32 untuk kirim data sensor ke Firebase.</li>
+        <li><strong>Opsi hemat:</strong> Arduino Nano kirim data ke laptop via Serial Monitor, lalu laptop yang upload ke Firebase.</li>
+        <li><strong>Data yang dipantau:</strong> Vpanel, Ipanel, Ppanel, Vbatt, duty cycle, status relay pompa, dan mode MPPT/PWM.</li>
+      </ol>
+    </div>
+  </section>
+
   <!-- =============== MPPT EXPLANATION =============== -->
   <section class="section" id="mppt-vs-pwm">
     <div class="section-header">
@@ -3494,7 +3985,7 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
 <footer>
     <div class="footer-title">⚡ MPPT Capstone Documentation</div>
     <p style="color: var(--text-secondary); margin-bottom: 8px;">Sistem Otomasi Pompa Air DC Tenaga Surya Berbasis MPPT</p>
-    <p style="color: var(--text-muted); font-size: 13px;">Dokumentasi lengkap untuk tugas akhir — BOM, kalkulator, MPPT, wiring, dan flow sistem</p>
+    <p style="color: var(--text-muted); font-size: 13px;">Dokumentasi lengkap untuk tugas akhir — BOM, kalkulator, urunan, monitoring, MPPT, wiring, dan flow sistem</p>
   </footer>
 </div>
 
@@ -3558,6 +4049,7 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
     const data = {
       votes: {},
       prices: priceData,
+      customItems: customItems,
       checklist: [],
       procurement: {},
       savedAt: new Date().toISOString()
@@ -3591,6 +4083,8 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
     if (!data) return;
 
     if (data.prices) priceData = data.prices;
+    if (Array.isArray(data.customItems)) customItems = data.customItems;
+    renderCustomItems();
 
     document.querySelectorAll('.card[data-name]').forEach(card => {
       card.querySelectorAll('.vote-btn').forEach(b => b.classList.remove('active'));
@@ -3744,7 +4238,7 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
     reader.onload = async function(e) {
       try {
         const data = JSON.parse(e.target.result);
-        if (!data.votes && !data.prices && !data.checklist && !data.procurement) {
+        if (!data.votes && !data.prices && !data.checklist && !data.procurement && !data.customItems) {
           alert('File tidak valid');
           return;
         }
@@ -4041,9 +4535,25 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
   // PRICES STORAGE
   // =============================================
   let priceData = { beli: {}, sewa: {} };
+  let customItems = [];
   
   function getSavedPrice(type, name) {
-    return priceData[type][name];
+    const saved = priceData[type][name];
+    if (saved !== undefined && saved !== null && saved !== '') return saved;
+
+    // Harga default dari HTML untuk item yang sudah dibeli/biaya realisasi.
+    // Tetap bisa diedit manual di kalkulator.
+    const safeName = cssEscapeName(name);
+    const card = document.querySelector(`.card[data-name="${safeName}"]`);
+    if (card && card.dataset.defaultPrice) {
+      return parseFloat(card.dataset.defaultPrice) || '';
+    }
+    return saved;
+  }
+
+  function cssEscapeName(name) {
+    if (window.CSS && CSS.escape) return CSS.escape(name);
+    return String(name).replace(/\/g, '\\').replace(/"/g, '\"');
   }
   
   function getSavedSewa(name) {
@@ -4067,6 +4577,113 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
       harga3: saved.harga3 || '',
       bulan: String(saved.bulan || '1')
     };
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function addDadakanItem() {
+    const nameInput = document.getElementById('dadakan-name');
+    const qtyInput = document.getElementById('dadakan-qty');
+    const priceInput = document.getElementById('dadakan-price');
+    const name = (nameInput?.value || '').trim();
+    const qty = Math.max(1, parseFloat(qtyInput?.value) || 1);
+    const price = Math.max(0, parseFloat(priceInput?.value) || 0);
+
+    if (!name) {
+      alert('Nama barang/biaya dadakan belum diisi.');
+      return;
+    }
+
+    customItems.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+      name,
+      qty,
+      price
+    });
+
+    if (nameInput) nameInput.value = '';
+    if (qtyInput) qtyInput.value = '1';
+    if (priceInput) priceInput.value = '';
+
+    renderCustomItems();
+    recalc();
+  }
+
+  function updateDadakanItem(id, field, value) {
+    const item = customItems.find(i => i.id === id);
+    if (!item) return;
+    if (field === 'name') item.name = value.trim();
+    if (field === 'qty') item.qty = Math.max(1, parseFloat(value) || 1);
+    if (field === 'price') item.price = Math.max(0, parseFloat(value) || 0);
+    recalc();
+  }
+
+  function removeDadakanItem(id) {
+    if (!confirm('Hapus item tambahan dadakan ini?')) return;
+    customItems = customItems.filter(i => i.id !== id);
+    renderCustomItems();
+    recalc();
+  }
+
+  function calcCustomItemsTotal() {
+    return customItems.reduce((sum, item) => {
+      const qty = Math.max(1, parseFloat(item.qty) || 1);
+      const price = Math.max(0, parseFloat(item.price) || 0);
+      return sum + (qty * price);
+    }, 0);
+  }
+
+  function renderCustomItems() {
+    const list = document.getElementById('dadakan-list');
+    const totalBox = document.getElementById('dadakan-total-box');
+    if (!list) return;
+
+    if (!customItems.length) {
+      list.innerHTML = '<div class="empty-state">Belum ada tambahan alat dadakan. Isi form di atas kalau ada pembelian mendadak.</div>';
+      if (totalBox) totalBox.style.display = 'none';
+      const totalEl = document.getElementById('dadakan-total');
+      if (totalEl) totalEl.textContent = formatRp(0);
+      return;
+    }
+
+    list.innerHTML = `
+      <table class="calc-table">
+        <thead>
+          <tr>
+            <th>Nama barang / biaya</th>
+            <th style="text-align:center; width: 90px;">Qty</th>
+            <th style="text-align:right; width: 160px;">Harga</th>
+            <th style="text-align:right; width: 160px;">Subtotal</th>
+            <th style="text-align:center; width: 80px;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${customItems.map(item => {
+            const qty = Math.max(1, parseFloat(item.qty) || 1);
+            const price = Math.max(0, parseFloat(item.price) || 0);
+            return `
+              <tr>
+                <td><input type="text" value="${escapeHtml(item.name)}" oninput="updateDadakanItem('${item.id}', 'name', this.value)"></td>
+                <td><input type="number" min="1" value="${qty}" oninput="updateDadakanItem('${item.id}', 'qty', this.value)"></td>
+                <td><input type="number" min="0" value="${price}" oninput="updateDadakanItem('${item.id}', 'price', this.value)"></td>
+                <td style="text-align:right; color: var(--accent-green); font-weight: 800;">${formatRp(qty * price)}</td>
+                <td style="text-align:center;"><button class="dadakan-delete-btn" type="button" onclick="removeDadakanItem('${item.id}')">Hapus</button></td>
+              </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+
+    if (totalBox) totalBox.style.display = 'flex';
+    const totalEl = document.getElementById('dadakan-total');
+    if (totalEl) totalEl.textContent = formatRp(calcCustomItemsTotal());
   }
   
   // =============================================
@@ -4103,11 +4720,22 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
       totalSewa += subtotal;
     });
     
+    const totalDadakan = calcCustomItemsTotal();
+    totalBeli += totalDadakan;
+
+    const dadakanTotalEl = document.getElementById('dadakan-total');
+    if (dadakanTotalEl) dadakanTotalEl.textContent = formatRp(totalDadakan);
+    const dadakanTotalBox = document.getElementById('dadakan-total-box');
+    if (dadakanTotalBox) dadakanTotalBox.style.display = customItems.length ? 'flex' : 'none';
+
+    const grandTotal = totalBeli + totalSewa;
     document.getElementById('calc-beli-amount').textContent = formatRp(totalBeli);
     document.getElementById('calc-sewa-amount').textContent = formatRp(totalSewa);
     document.getElementById('rekap-beli').textContent = formatRp(totalBeli);
     document.getElementById('rekap-sewa').textContent = formatRp(totalSewa);
-    document.getElementById('rekap-total').textContent = formatRp(totalBeli + totalSewa);
+    document.getElementById('rekap-total').textContent = formatRp(grandTotal);
+    const urunanEl = document.getElementById('rekap-urunan-dua');
+    if (urunanEl) urunanEl.textContent = formatRp(grandTotal / 2) + ' / orang';
     
     // Trigger save (debounced)
     clearTimeout(window._recalcSaveTimer);
@@ -4136,10 +4764,11 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
   // =============================================
   enhanceBOMCards();       // 1. Tambah kontrol pembelian & opsi pengganti di setiap kartu BOM
   initBOMFilters();        // 2. Aktifkan pencarian dan filter status barang
+  renderCustomItems();     // 3. Render item tambahan dadakan
   // Data utama sekarang dimuat oleh Firebase di script module bawah.
   // localStorage hanya dipakai sebagai backup jika Firebase belum aktif/gagal.
-  syncCalculators();       // 3. Render kalkulator awal
-  updateChecklistProgress(); // 4. Update checklist counter
+  syncCalculators();       // 4. Render kalkulator awal
+  updateChecklistProgress(); // 5. Update checklist counter
 </script>
 
 <script type="module">
@@ -4307,5 +4936,7 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
 </script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"7939e04a4baf43c8b86a560f74aac60e","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"8d57f005eff546ba871311748ac6df7b","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"7939e04a4baf43c8b86a560f74aac60e","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"8d57f005eff546ba871311748ac6df7b","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
