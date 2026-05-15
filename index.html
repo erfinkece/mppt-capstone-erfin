@@ -1348,6 +1348,54 @@
     .card { padding: 14px; }
     .vote-btn { font-size: 11px; padding: 8px; }
   }
+
+
+  /* RECEIPT / STRUK PDF */
+  .receipt-actions {
+    margin-top: 18px;
+    padding: 18px;
+    background: rgba(0, 217, 255, 0.06);
+    border: 1px solid rgba(0, 217, 255, 0.22);
+    border-radius: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .receipt-actions p {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin: 0;
+    flex: 1;
+    min-width: 260px;
+  }
+
+  .receipt-print-btn {
+    border: none;
+    cursor: pointer;
+    padding: 13px 18px;
+    border-radius: 999px;
+    font-family: inherit;
+    font-weight: 800;
+    color: var(--bg-primary);
+    background: var(--gradient-3);
+    box-shadow: 0 10px 24px rgba(0, 255, 136, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .receipt-print-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(0, 255, 136, 0.32);
+  }
+
+  .receipt-mini-note {
+    width: 100%;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
 </style>
 </head>
 <body>
@@ -1361,6 +1409,7 @@
       <li><a href="#kalkulator-beli">🛒 Beli</a></li>
       <li><a href="#kalkulator-sewa">🏛️ Sewa</a></li>
       <li><a href="#total-akhir">💰 Total</a></li>
+      <li><a href="#struk-pengeluaran">🧾 Struk PDF</a></li>
       <li><a href="#alat-dadakan">➕ Dadakan</a></li>
       <li><a href="#monitoring">📡 Monitoring</a></li>
       <li><a href="#mppt-vs-pwm">⚡ MPPT vs PWM</a></li>
@@ -1380,7 +1429,7 @@
   <header>
     <div class="badge">⚡ Capstone Project — Tugas Akhir</div>
     <h1>Sistem Otomasi Pompa Air DC<br>Tenaga Surya Berbasis MPPT</h1>
-    <p class="subtitle">Dokumentasi lengkap: BOM final, kalkulator biaya, wiring detail, prosedur testing, database Firebase-ready, dan alur sistem dari panel hingga pompa</p>
+    <p class="subtitle">Dokumentasi lengkap: BOM final, kalkulator biaya, wiring detail, prosedur testing, database Firebase-ready, dan alur sistem dari panel hingga pompa — versi biaya bersih Rp1.550.000</p>
   </header>
   
   <!-- DATA MANAGEMENT BAR -->
@@ -1396,12 +1445,18 @@
       <button class="data-btn export" onclick="exportData()" title="Download data ke file JSON">
         💾 Export
       </button>
+      <button class="data-btn export" onclick="printExpenseReceipt()" title="Cetak struk pengeluaran detail ke PDF">
+        🧾 Cetak Struk PDF
+      </button>
       <label class="data-btn import" title="Load data dari file JSON" style="cursor: pointer; margin: 0;">
         📂 Import
         <input type="file" accept=".json" onchange="importData(this)" style="display: none;">
       </label>
       <button class="data-btn export" onclick="pushLocalToCloud()" title="Paksa upload data di browser ini ke Firebase sebagai data master">
         ☁️ Upload Master
+      </button>
+      <button class="data-btn import" onclick="resetBudgetToDefault1550()" title="Reset biaya ke default realisasi Rp1.550.000">
+        ♻️ Reset Rp1.550.000
       </button>
       <button class="data-btn clear" onclick="clearAll()" title="Hapus semua data tersimpan">
         🗑️ Clear All
@@ -2795,6 +2850,29 @@
         <div class="calc-total-value" id="rekap-urunan-dua">Rp 0 / orang</div>
       </div>
       <p style="color: var(--text-muted); font-size: 12px; margin-top: 10px;">Catatan: hitungan urunan otomatis = Grand Total ÷ 2 orang. Jika alat sewa tidak diberi harga, maka sewa tidak ikut menambah total.</p>
+      <div class="receipt-actions">
+        <p>Butuh bukti/rekap biaya untuk laporan atau dibagikan ke teman? Cetak detail pengeluaran ke PDF dari data total saat ini.</p>
+        <button class="receipt-print-btn" type="button" onclick="printExpenseReceipt()">🧾 Cetak Struk PDF</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =============== STRUK PENGELUARAN PDF =============== -->
+  <section class="section" id="struk-pengeluaran">
+    <div class="section-header">
+      <div class="section-icon icon-calc">🧾</div>
+      <div class="section-title">
+        <h2>Cetak Struk Pengeluaran</h2>
+        <p>Cetak rekap total pengeluaran, detail komponen beli, biaya dadakan, sewa yang terisi, dan urunan 2 orang.</p>
+      </div>
+    </div>
+
+    <div class="calc-box">
+      <div class="receipt-actions">
+        <p><strong>Struk PDF</strong> akan mengambil data terbaru dari kalkulator di halaman ini. Setelah tombol ditekan, pilih <strong>Save as PDF / Simpan sebagai PDF</strong> pada dialog print browser.</p>
+        <button class="receipt-print-btn" type="button" onclick="printExpenseReceipt()">🧾 Cetak / Simpan PDF</button>
+        <div class="receipt-mini-note">Tips: sebelum cetak, pastikan total di bagian rekap sudah benar. Jika masih ketarik data lama, klik tombol ♻️ Reset Rp1.550.000 lalu cetak ulang.</div>
+      </div>
     </div>
   </section>
   
@@ -3999,7 +4077,7 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
   // =============================================
   // STORAGE SYSTEM — Firebase sebagai sumber utama, localStorage hanya backup
   // =============================================
-  const STORAGE_KEY = 'mppt_capstone_data_v1';
+  const STORAGE_KEY = 'mppt_capstone_data_v15_struk_pdf';
   // Kunci autosave saat halaman pertama kali dibuka.
   // Ini mencegah data default/lama menimpa Firestore sebelum proses load Firebase selesai.
   window._allowAutoSave = false;
@@ -4213,6 +4291,44 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
   window.collectData = collectData;
   window.loadLocalBackup = loadAll;
   
+  async function resetBudgetToDefault1550() {
+    if (!confirm('Reset biaya ke default realisasi Rp1.550.000?\n\nData harga lama, item dadakan, dan vote lama akan dibersihkan di browser ini.')) return;
+
+    // Bersihkan semua pilihan lama agar total tidak tercampur dengan data versi sebelumnya.
+    document.querySelectorAll('.vote-btn.active').forEach(btn => btn.classList.remove('active'));
+    priceData = { beli: {}, sewa: {} };
+    customItems = [];
+
+    // Reset procurement checkbox/catatan agar sesuai default HTML.
+    document.querySelectorAll('.card').forEach(card => {
+      const cb = card.querySelector('.procurement-checkbox');
+      const note = card.querySelector('.procurement-input');
+      if (cb) {
+        cb.checked = card.dataset.defaultProcured === 'true';
+        card.classList.toggle('procured', cb.checked);
+      }
+      if (note) note.value = '';
+    });
+
+    // Aktifkan ulang item default biaya realisasi Rp1.550.000.
+    document.querySelectorAll('.card[data-default-vote]').forEach(card => {
+      const defaultVote = card.dataset.defaultVote;
+      const btn = card.querySelector(`.vote-btn.${defaultVote}`);
+      if (btn) btn.classList.add('active');
+    });
+
+    renderCalculators();
+    renderCustomItems();
+    updateFilterCounts?.();
+    saveAll();
+
+    if (window.saveDataToCloud) {
+      try { await window.saveDataToCloud(JSON.parse(localStorage.getItem(STORAGE_KEY))); } catch(e) { console.warn(e); }
+    }
+
+    alert('Total sudah direset ke default Rp1.550.000. Jika halaman GitHub masih belum berubah, tekan Ctrl + Shift + R.');
+  }
+
   async function clearAll() {
     if (!confirm('Yakin mau hapus SEMUA data? Ini akan menghapus vote, harga, checklist, centang pembelian, dan catatan pengganti. Tidak bisa dibatalkan.')) return;
     localStorage.removeItem(STORAGE_KEY);
@@ -4765,6 +4881,222 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
     return 'Rp ' + Math.round(num).toLocaleString('id-ID');
   }
   
+
+  // =============================================
+  // CETAK STRUK PENGELUARAN PDF
+  // =============================================
+  function currencyTextToNumber(text) {
+    const clean = String(text || '').replace(/[^0-9,-]/g, '').replace(',', '.');
+    return parseFloat(clean) || 0;
+  }
+
+  function getInputNumber(input) {
+    return Math.max(0, parseFloat(input?.value) || 0);
+  }
+
+  function getReceiptBeliRows() {
+    const rows = [];
+    document.querySelectorAll('#calc-beli-list tbody tr').forEach(row => {
+      const name = row.cells?.[0]?.textContent?.trim() || '-';
+      const qty = row.cells?.[1]?.textContent?.trim() || '1';
+      const price = getInputNumber(row.querySelector('input[data-type="beli"]'));
+      if (price > 0 || name !== '-') rows.push({ name, qty, subtotal: price });
+    });
+    return rows;
+  }
+
+  function getReceiptSewaRows() {
+    const rows = [];
+    document.querySelectorAll('#calc-sewa-list tbody tr').forEach(row => {
+      const name = row.cells?.[0]?.textContent?.trim() || '-';
+      const qty = row.cells?.[1]?.textContent?.trim() || '1';
+      const bulan = row.querySelector('[data-type="sewa-bulan"]')?.value || '1';
+      const subtotal = currencyTextToNumber(row.querySelector('.sewa-subtotal')?.textContent || '0');
+      if (subtotal > 0) rows.push({ name, qty, bulan, subtotal });
+    });
+    return rows;
+  }
+
+  function getReceiptDadakanRows() {
+    return (customItems || [])
+      .map(item => {
+        const qty = Math.max(1, parseFloat(item.qty) || 1);
+        const price = Math.max(0, parseFloat(item.price) || 0);
+        return { name: item.name || '-', qty, price, subtotal: qty * price };
+      })
+      .filter(item => item.subtotal > 0 || item.name !== '-');
+  }
+
+  function buildReceiptRowsHtml(rows, options = {}) {
+    const { showDuration = false, showUnitPrice = false } = options;
+    if (!rows.length) {
+      return '<tr><td colspan="5" class="empty">Tidak ada item berharga pada kategori ini.</td></tr>';
+    }
+
+    return rows.map((row, idx) => `
+      <tr>
+        <td class="num">${idx + 1}</td>
+        <td>${escapeHtml(row.name)}</td>
+        <td class="center">${escapeHtml(row.qty)}</td>
+        ${showDuration ? `<td class="center">${escapeHtml(row.bulan)} bulan</td>` : ''}
+        ${showUnitPrice ? `<td class="right">${formatRp(row.price || 0)}</td>` : ''}
+        <td class="right strong">${formatRp(row.subtotal || 0)}</td>
+      </tr>
+    `).join('');
+  }
+
+  function sumRows(rows) {
+    return rows.reduce((sum, row) => sum + (parseFloat(row.subtotal) || 0), 0);
+  }
+
+  function buildExpenseReceiptHtml() {
+    // Pastikan kalkulator memakai nilai terbaru sebelum dibuat struk.
+    if (typeof recalc === 'function') recalc();
+
+    const beliRows = getReceiptBeliRows();
+    const dadakanRows = getReceiptDadakanRows();
+    const sewaRows = getReceiptSewaRows();
+
+    const totalBeli = currencyTextToNumber(document.getElementById('rekap-beli')?.textContent || '0');
+    const totalSewa = currencyTextToNumber(document.getElementById('rekap-sewa')?.textContent || '0');
+    const grandTotal = currencyTextToNumber(document.getElementById('rekap-total')?.textContent || '0');
+    const urunan = grandTotal / 2;
+
+    const now = new Date();
+    const tanggal = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+    const jam = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+    const totalDadakan = sumRows(dadakanRows);
+    const totalBeliTanpaDadakan = totalBeli - totalDadakan;
+
+    return `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Struk Pengeluaran Capstone MPPT</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: Arial, Helvetica, sans-serif; color: #111827; margin: 0; padding: 24px; background: #f3f4f6; }
+  .receipt { max-width: 920px; margin: 0 auto; background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; overflow: hidden; }
+  .header { padding: 26px 30px; background: linear-gradient(135deg, #0f172a, #1e3a8a); color: #fff; }
+  .header h1 { font-size: 22px; margin: 0 0 6px; }
+  .header p { margin: 4px 0; color: #dbeafe; font-size: 13px; }
+  .meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 18px 30px; border-bottom: 1px solid #e5e7eb; }
+  .meta div { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; font-size: 13px; }
+  .meta strong { display: block; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 2px; }
+  .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 20px 30px; }
+  .sum-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; background: #f9fafb; }
+  .sum-card .label { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
+  .sum-card .value { font-size: 19px; margin-top: 6px; font-weight: 800; color: #111827; }
+  .sum-card.grand { background: #ecfdf5; border-color: #a7f3d0; }
+  .sum-card.split { background: #fffbeb; border-color: #fde68a; }
+  .section { padding: 0 30px 22px; }
+  h2 { font-size: 16px; margin: 20px 0 10px; color: #0f172a; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { text-align: left; background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; padding: 9px; }
+  td { border: 1px solid #e5e7eb; padding: 8px 9px; vertical-align: top; }
+  .num { width: 38px; text-align: center; color: #6b7280; }
+  .center { text-align: center; }
+  .right { text-align: right; }
+  .strong { font-weight: 800; }
+  .empty { text-align: center; color: #6b7280; font-style: italic; }
+  .footer { padding: 18px 30px 26px; color: #6b7280; font-size: 12px; border-top: 1px solid #e5e7eb; }
+  .signature { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 26px; }
+  .sig-box { text-align: center; padding-top: 48px; border-top: 1px solid transparent; }
+  .sig-line { border-top: 1px solid #111827; padding-top: 8px; }
+  @media print {
+    body { padding: 0; background: #fff; }
+    .receipt { border: none; border-radius: 0; max-width: none; }
+    @page { size: A4; margin: 12mm; }
+  }
+</style>
+</head>
+<body>
+  <div class="receipt">
+    <div class="header">
+      <h1>Struk / Rekap Total Pengeluaran Project</h1>
+      <p>Sistem Otomasi Pompa Air DC Tenaga Surya Berbasis MPPT</p>
+      <p>Dokumen ini dibuat otomatis dari website BOM Capstone.</p>
+    </div>
+
+    <div class="meta">
+      <div><strong>Tanggal Cetak</strong>${tanggal} · ${jam}</div>
+      <div><strong>Tim</strong>Erfin - Bila</div>
+      <div><strong>Skema Urunan</strong>2 orang</div>
+      <div><strong>Status</strong>Rekap biaya project / pengeluaran</div>
+    </div>
+
+    <div class="summary">
+      <div class="sum-card"><div class="label">Total Beli</div><div class="value">${formatRp(totalBeli)}</div></div>
+      <div class="sum-card"><div class="label">Total Sewa</div><div class="value">${formatRp(totalSewa)}</div></div>
+      <div class="sum-card grand"><div class="label">Grand Total</div><div class="value">${formatRp(grandTotal)}</div></div>
+      <div class="sum-card split"><div class="label">Urunan / Orang</div><div class="value">${formatRp(urunan)}</div></div>
+    </div>
+
+    <div class="section">
+      <h2>Detail Komponen / Biaya Beli</h2>
+      <table>
+        <thead><tr><th>No</th><th>Nama Komponen / Biaya</th><th>Qty</th><th>Subtotal</th></tr></thead>
+        <tbody>${buildReceiptRowsHtml(beliRows, { showDuration: false, showUnitPrice: false })}</tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>Detail Tambahan Alat Dadakan</h2>
+      <table>
+        <thead><tr><th>No</th><th>Nama Barang / Biaya</th><th>Qty</th><th>Harga Satuan</th><th>Subtotal</th></tr></thead>
+        <tbody>${buildReceiptRowsHtml(dadakanRows, { showUnitPrice: true })}</tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>Detail Sewa Lab yang Diberi Harga</h2>
+      <table>
+        <thead><tr><th>No</th><th>Nama Alat</th><th>Qty</th><th>Durasi</th><th>Subtotal</th></tr></thead>
+        <tbody>${buildReceiptRowsHtml(sewaRows, { showDuration: true })}</tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>Ringkasan Pembagian Biaya</h2>
+      <table>
+        <tbody>
+          <tr><td>Total beli termasuk tambahan dadakan</td><td class="right strong">${formatRp(totalBeli)}</td></tr>
+          <tr><td>Total sewa yang diisi harga</td><td class="right strong">${formatRp(totalSewa)}</td></tr>
+          <tr><td>Grand total project</td><td class="right strong">${formatRp(grandTotal)}</td></tr>
+          <tr><td>Urunan per orang (Grand Total ÷ 2)</td><td class="right strong">${formatRp(urunan)}</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="footer">
+      <p><strong>Catatan:</strong> nominal pada struk ini mengikuti data yang tampil di kalkulator website saat tombol cetak ditekan. Jika ada nota/komponen tambahan, masukkan dulu di fitur “Tambahan Alat Dadakan”, lalu cetak ulang.</p>
+      <div class="signature">
+        <div class="sig-box"><div class="sig-line">Erfin</div></div>
+        <div class="sig-box"><div class="sig-line">Bila</div></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
+  }
+
+  function printExpenseReceipt() {
+    const html = buildExpenseReceiptHtml();
+    const printWindow = window.open('', '_blank', 'width=1000,height=800');
+    if (!printWindow) {
+      alert('Popup print diblokir browser. Izinkan popup untuk website ini, lalu coba lagi.');
+      return;
+    }
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 400);
+  }
+
   // =============================================
   // SMOOTH SCROLL NAV
   // =============================================
@@ -4811,8 +5143,8 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
   };
 
   const COLLECTION_NAME = "bom_capstone";
-  const DOCUMENT_ID = "shared_state";
-  const LOCAL_KEY = "mppt_capstone_data_v1";
+  const DOCUMENT_ID = "shared_state_v15_struk_pdf";
+  const LOCAL_KEY = "mppt_capstone_data_v15_struk_pdf";
 
   function setFirebaseStatus(message, ok = false) {
     const el = document.getElementById("firebase-connection-status");
@@ -4954,8 +5286,6 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
     }
   }
 </script>
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"7939e04a4baf43c8b86a560f74aac60e","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"8d57f005eff546ba871311748ac6df7b","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"7939e04a4baf43c8b86a560f74aac60e","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"8d57f005eff546ba871311748ac6df7b","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
