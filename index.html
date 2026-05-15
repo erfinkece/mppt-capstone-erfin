@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BOM & Documentation — Sistem Otomasi Pompa Air DC Tenaga Surya MPPT (v12 Urunan Dadakan Monitoring)</title>
+<title>BOM & Documentation — Sistem Otomasi Pompa Air DC Tenaga Surya MPPT (v13 Total Fix)</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   
@@ -4044,6 +4044,27 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
     return String(str).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   }
 
+  function findCardByName(name) {
+    return Array.from(document.querySelectorAll('.card[data-name]')).find(card => card.dataset.name === name);
+  }
+
+  function applyHtmlDefaults() {
+    // Aktifkan item realisasi yang memang sudah ditandai default di HTML.
+    // Ini penting agar total tidak 0 saat data Firebase/localStorage lama belum punya item baru.
+    document.querySelectorAll('.card[data-default-vote]').forEach(card => {
+      if (card.querySelector('.vote-btn.active')) return;
+      const defaultVote = card.dataset.defaultVote;
+      const btn = card.querySelector(`.vote-btn.${defaultVote}`);
+      if (btn) btn.classList.add('active');
+    });
+
+    document.querySelectorAll('.card[data-default-procured="true"]').forEach(card => {
+      const cb = card.querySelector('.procurement-checkbox');
+      if (cb && !cb.checked) cb.checked = true;
+      card.classList.add('procured');
+    });
+  }
+
 
   function collectData() {
     const data = {
@@ -4092,7 +4113,7 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
 
     if (data.votes) {
       Object.keys(data.votes).forEach(name => {
-        const card = document.querySelector(`.card[data-name="${name}"]`);
+        const card = findCardByName(name);
         if (card) {
           const targetClass = data.votes[name];
           const btn = card.querySelector(`.vote-btn.${targetClass}`);
@@ -4123,7 +4144,7 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
 
     if (data.procurement) {
       Object.keys(data.procurement).forEach(name => {
-        const card = document.querySelector(`.card[data-name="${name}"]`);
+        const card = findCardByName(name);
         if (!card) return;
         const state = data.procurement[name] || {};
         const cb = card.querySelector('.procurement-checkbox');
@@ -4538,24 +4559,22 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
   let customItems = [];
   
   function getSavedPrice(type, name) {
-    const saved = priceData[type][name];
-    if (saved !== undefined && saved !== null && saved !== '') return saved;
+    const saved = priceData[type]?.[name];
+    const card = findCardByName(name);
 
-    // Harga default dari HTML untuk item yang sudah dibeli/biaya realisasi.
-    // Tetap bisa diedit manual di kalkulator.
-    const safeName = cssEscapeName(name);
-    const card = document.querySelector(`.card[data-name="${safeName}"]`);
+    // Untuk item realisasi/default, kalau data lama masih 0/kosong, pakai harga bawaan dari HTML.
+    // Harga tetap bisa diedit manual setelah tampil di kalkulator.
     if (card && card.dataset.defaultPrice) {
-      return parseFloat(card.dataset.defaultPrice) || '';
+      const defaultPrice = parseFloat(card.dataset.defaultPrice) || 0;
+      if (saved === undefined || saved === null || saved === '' || Number(saved) === 0) {
+        return defaultPrice || '';
+      }
     }
-    return saved;
+
+    if (saved !== undefined && saved !== null && saved !== '') return saved;
+    return '';
   }
 
-  function cssEscapeName(name) {
-    if (window.CSS && CSS.escape) return CSS.escape(name);
-    return String(name).replace(/\/g, '\\').replace(/"/g, '\"');
-  }
-  
   function getSavedSewa(name) {
     const saved = priceData.sewa[name] || {};
 
@@ -4765,10 +4784,11 @@ LiquidCrystal_I2C lcd(<span class="number">0x3F</span>, <span class="number">16<
   enhanceBOMCards();       // 1. Tambah kontrol pembelian & opsi pengganti di setiap kartu BOM
   initBOMFilters();        // 2. Aktifkan pencarian dan filter status barang
   renderCustomItems();     // 3. Render item tambahan dadakan
+  applyHtmlDefaults();     // 4. Aktifkan harga/vote default realisasi agar total tidak 0
   // Data utama sekarang dimuat oleh Firebase di script module bawah.
   // localStorage hanya dipakai sebagai backup jika Firebase belum aktif/gagal.
-  syncCalculators();       // 4. Render kalkulator awal
-  updateChecklistProgress(); // 5. Update checklist counter
+  syncCalculators();       // 5. Render kalkulator awal
+  updateChecklistProgress(); // 6. Update checklist counter
 </script>
 
 <script type="module">
